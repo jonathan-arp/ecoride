@@ -1,17 +1,57 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <meta charset="UTF-8">
-        <title>{% block title %}Welcome!{% endblock %}</title>
-        <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>⚫️</text><text y=%221.3em%22 x=%220.2em%22 font-size=%2276%22 fill=%22%23fff%22>sf</text></svg>">
+        
         {% block stylesheets %}
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Anton&amp;display=swap" rel="stylesheet">    
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+
+        {{ encore_entry_link_tags('app') }}
+        {% endblock %}
+        
+        {% block javascripts_head %}
+            {{ encore_entry_script_tags('app') }}
+        {% endblock %}
+        
+        {% block meta %}
+        <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1">
         {% endblock %}
 
-        {% block javascripts %}
-            {% block importmap %}{{ importmap('app') }}{% endblock %}
-        {% endblock %}
+        
     </head>
     <body>
+    
+    {%  include "base/header.html.twig" %}
+        {% for label, messages in app.flashes %}
+        {% for message in messages %}
+            <div class="alert alert-{{ label == 'success' ? 'success' : 'warning' }} alert-dismissible fade show text-center w-50 mx-auto my-2" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+        {% endfor %}
+        {% endfor %}
+        <main>
         {% block body %}{% endblock %}
+        </main>
+
+        {% include "base/footer.html.twig" %}
+
+        {% block javascripts %}
+            {{ encore_entry_script_tags('app') }}
+        <script src=" https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>    
+        {% endblock %}
+
+
+        {% for label, messages in app.flashes %}
+        {% for message in messages %}
+            <div class="flash-{{ label }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+        {% endfor %}
+
     </body>
 </html>
