@@ -19,3 +19,8 @@
 /public/assets/
 /assets/vendor/
 ###< symfony/asset-mapper ###
+
+/node_modules/
+/public/build/
+npm-debug.log
+yarn-error.log
