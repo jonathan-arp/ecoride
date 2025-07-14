@@ -11,6 +11,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Field\ChoiceField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\FormField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\ImageField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use Vich\UploaderBundle\Form\Type\VichImageType;
 
 class UserCrudController extends AbstractCrudController
@@ -50,6 +51,14 @@ class UserCrudController extends AbstractCrudController
             ImageField::new('photo', 'Aperçu Photo')
                 ->setBasePath('/uploads/users/')
                 ->onlyOnIndex(),
+            
+            FormField::addPanel('Préférences utilisateur')->setIcon('fa fa-cog'),
+            AssociationField::new('parameters')
+                ->setLabel('Paramètres')
+                ->setFormTypeOptions([
+                    'by_reference' => false,
+                ])
+                ->hideOnIndex(),
             
             ChoiceField::new('roles')
                 ->setLabel('Rôles')

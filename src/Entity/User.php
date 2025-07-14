@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\UserRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\HttpFoundation\File\File;
@@ -57,6 +59,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $photo = null;
 
     /**
+     * @var Collection<int, Parameter>
+     */
+    #[ORM\ManyToMany(targetEntity: Parameter::class, inversedBy: 'users')]
+    #[ORM\JoinTable(name: 'user_parameters')]
+    private Collection $parameters;
+
+    /**
      * NOTE: This is not a mapped field of entity metadata, just a simple property.
      */
     #[Vich\UploadableField(mapping: 'user_photos', fileNameProperty: 'photo')]
@@ -64,6 +73,25 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $updatedAt = null;
+
+    /**
+     * @var Collection<int, Car>
+     */
+    #[ORM\OneToMany(targetEntity: Car::class, mappedBy: 'user', orphanRemoval: true)]
+    private Collection $cars;
+
+    /**
+     * @var Collection<int, Carshare>
+     */
+    #[ORM\OneToMany(targetEntity: Carshare::class, mappedBy: 'driver', orphanRemoval: true)]
+    private Collection $carshares;
+
+    public function __construct()
+    {
+        $this->cars = new ArrayCollection();
+        $this->carshares = new ArrayCollection();
+        $this->parameters = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -250,6 +278,90 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setUpdatedAt(?\DateTimeImmutable $updatedAt): static
     {
         $this->updatedAt = $updatedAt;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Car>
+     */
+    public function getCars(): Collection
+    {
+        return $this->cars;
+    }
+
+    public function addCar(Car $car): static
+    {
+        if (!$this->cars->contains($car)) {
+            $this->cars->add($car);
+            $car->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeCar(Car $car): static
+    {
+        if ($this->cars->removeElement($car)) {
+            // set the owning side to null (unless already changed)
+            if ($car->getUser() === $this) {
+                $car->setUser(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Carshare>
+     */
+    public function getCarshares(): Collection
+    {
+        return $this->carshares;
+    }
+
+    public function addCarshare(Carshare $carshare): static
+    {
+        if (!$this->carshares->contains($carshare)) {
+            $this->carshares->add($carshare);
+            $carshare->setDriver($this);
+        }
+
+        return $this;
+    }
+
+    public function removeCarshare(Carshare $carshare): static
+    {
+        if ($this->carshares->removeElement($carshare)) {
+            // set the owning side to null (unless already changed)
+            if ($carshare->getDriver() === $this) {
+                $carshare->setDriver(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Parameter>
+     */
+    public function getParameters(): Collection
+    {
+        return $this->parameters;
+    }
+
+    public function addParameter(Parameter $parameter): static
+    {
+        if (!$this->parameters->contains($parameter)) {
+            $this->parameters->add($parameter);
+        }
+
+        return $this;
+    }
+
+    public function removeParameter(Parameter $parameter): static
+    {
+        $this->parameters->removeElement($parameter);
 
         return $this;
     }
