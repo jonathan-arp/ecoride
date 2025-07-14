@@ -5,6 +5,7 @@ namespace App\Form;
 use App\Entity\User;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\EmailType;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 use Symfony\Component\Form\Extension\Core\Type\RepeatedType;
@@ -106,7 +107,7 @@ class RegisterUserType extends AbstractType
 
             'attr' => ['placeholder' => 'Entrez votre adresse']
         ])
-        ->add('birthday', \Symfony\Component\Form\Extension\Core\Type\DateType::class,
+        ->add('birthday', DateType::class,
             [
                 'label' => 'Date de naissance',
                 'widget' => 'single_text',
