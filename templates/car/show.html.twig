@@ -1,0 +1,126 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+<h1 class="text-center mt-5">Détails du véhicule</h1>
+<div class="container my-5 d-flex flex-wrap justify-content-between">
+    
+    <div class="col-md-3 col-sm-12 mt-4">
+        {% include 'account/_menu.html.twig' %} 
+    </div>
+    
+    <div class="col-md-9 col-sm-12 mb-4">
+        <div class="card" id="card-account">
+            <div class="card-header bg-gold">
+                <h4>
+                    <i class="fas fa-car me-2"></i>{{ car.brand.content }} {{ car.model }}
+                </h4>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5>Informations générales</h5>
+                        <div class="mb-3">
+                            <span class="data-label">Marque:</span>
+                            <strong>{{ car.brand.content }}</strong>
+                        </div>
+                        <div class="mb-3">
+                            <span class="data-label">Modèle:</span>
+                            <strong>{{ car.model }}</strong>
+                        </div>
+                        <div class="mb-3">
+                            <span class="data-label">Immatriculation:</span>
+                            <span class="badge bg-secondary fs-6">{{ car.matriculation }}</span>
+                        </div>
+                        <div class="mb-3">
+                            <span class="data-label">Couleur:</span>
+                            <span class="badge bg-info fs-6">{{ car.color }}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <h5>Caractéristiques techniques</h5>
+                        <div class="mb-3">
+                            <span class="data-label">Type d'énergie:</span>
+                            <span class="badge bg-success fs-6">
+                                <i class="fas fa-gas-pump me-1"></i>{{ car.energyType.value }}
+                            </span>
+                        </div>
+                        <div class="mb-3">
+                            <span class="data-label">Première immatriculation:</span>
+                            <strong>{{ car.dateFirstMatricule|date('d/m/Y') }}</strong>
+                        </div>
+                        <div class="mb-3">
+                            <span class="data-label">Propriétaire:</span>
+                            <strong>{{ car.user.firstname }} {{ car.user.lastname }}</strong>
+                        </div>
+                    </div>
+                </div>
+                
+                {% if car.carshares is not empty %}
+                    <hr>
+                    <h5>Trajets associés</h5>
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Ce véhicule est utilisé dans {{ car.carshares|length }} trajet(s) de covoiturage.
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="card-footer bg-white">
+                <div class="d-flex justify-content-between">
+                    <a href="{{ path('app_car_index') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Retour à la liste
+                    </a>
+                    <div>
+                        <a href="{{ path('app_car_edit', {'id': car.id}) }}" class="btn btn-warning">
+                            <i class="fas fa-edit me-2"></i>Modifier
+                        </a>
+                        <button type="button" class="btn btn-danger ms-2" onclick="confirmDelete({{ car.id }}, '{{ car.brand.content }} {{ car.model }}')">
+                            <i class="fas fa-trash me-2"></i>Supprimer
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete confirmation modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirmer la suppression</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                Êtes-vous sûr de vouloir supprimer le véhicule <strong id="carName"></strong> ?
+                {% if car.carshares is not empty %}
+                    <div class="alert alert-warning mt-3">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Attention : Ce véhicule est utilisé dans des trajets de covoiturage.
+                    </div>
+                {% endif %}
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <form id="deleteForm" method="post" style="display: inline;">
+                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ car.id) }}">
+                    <button type="submit" class="btn btn-danger">Supprimer</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        function confirmDelete(carId, carName) {
+            document.getElementById('carName').textContent = carName;
+            document.getElementById('deleteForm').action = '{{ path('app_car_delete', {'id': car.id}) }}';
+            new bootstrap.Modal(document.getElementById('deleteModal')).show();
+        }
+    </script>
+{% endblock %}

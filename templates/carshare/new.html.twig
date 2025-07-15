@@ -1,0 +1,95 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+<div class="container my-5">
+    <h1 class="text-center mb-5">Proposer un trajet</h1>
+    
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h4>
+                        <i class="fas fa-plus me-2"></i>Nouveau trajet
+                    </h4>
+                </div>
+                <div class="card-body">
+                    {{ form_start(form, {
+                        'method': 'POST',
+                        'action': path('app_carshare_new')
+                    }) }}
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                {{ form_label(form.start_location) }}
+                                {{ form_widget(form.start_location) }}
+                                {{ form_errors(form.start_location) }}
+                            </div>
+                            
+                            <div class="form-group mb-3">
+                                {{ form_label(form.start) }}
+                                {{ form_widget(form.start) }}
+                                {{ form_errors(form.start) }}
+                            </div>
+                            
+                            <div class="form-group mb-3">
+                                {{ form_label(form.place) }}
+                                {{ form_widget(form.place) }}
+                                {{ form_errors(form.place) }}
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                {{ form_label(form.end_location) }}
+                                {{ form_widget(form.end_location) }}
+                                {{ form_errors(form.end_location) }}
+                            </div>
+                            
+                            <div class="form-group mb-3">
+                                {{ form_label(form.end) }}
+                                {{ form_widget(form.end) }}
+                                {{ form_errors(form.end) }}
+                            </div>
+                            
+                            <div class="form-group mb-3">
+                                {{ form_label(form.price) }}
+                                {{ form_widget(form.price) }}
+                                {{ form_errors(form.price) }}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                {{ form_label(form.car) }}
+                                {{ form_widget(form.car) }}
+                                {{ form_errors(form.car) }}
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                {{ form_label(form.status) }}
+                                {{ form_widget(form.status) }}
+                                {{ form_errors(form.status) }}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between mt-4">
+                        <a href="{{ path('app_carshare_index') }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Retour
+                        </a>
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-save me-2"></i>Publier le trajet
+                        </button>
+                    </div>
+                    {{ form_end(form) }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
