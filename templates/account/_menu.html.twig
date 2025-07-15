@@ -10,6 +10,9 @@
     <li class="nav-item">
         <a class="nav-link {% if app.request.attributes.get('_route') == 'app_car_index' %}active{% endif %}" href="{{ path('app_car_index') }}">Mes véhicules</a>
     </li>
+    <li class="nav-item">
+        <a class="nav-link {% if app.request.attributes.get('_route') starts with 'app_driver' %}active{% endif %}" href="{{ path('app_driver_parameters') }}">Mes paramètres conducteur</a>
+    </li>
 
     {% if is_granted('ROLE_ADMIN') or is_granted('ROLE_EMPLOYEE') %}
 

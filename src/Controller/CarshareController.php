@@ -3,9 +3,11 @@
 namespace App\Controller;
 
 use App\Entity\Carshare;
+use App\Form\CarshareSearchType;
 use App\Repository\CarshareRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
@@ -67,6 +69,40 @@ class CarshareController extends AbstractController
 
         return $this->render('carshare/fiche_carshare.html.twig', [
             'carshare' => $carshare,
+        ]);
+    }
+
+    #[Route('/carshare/search', name: 'app_carshare_search', methods: ['GET', 'POST'])]
+    public function search(Request $request, CarshareRepository $carshareRepository): Response
+    {
+        $form = $this->createForm(CarshareSearchType::class);
+        $form->handleRequest($request);
+        
+        $searchResults = [];
+        $searchPerformed = false;
+        
+        if ($form->isSubmitted()) {
+            if ($form->isValid()) {
+                $searchPerformed = true;
+                $data = $form->getData();
+                
+                $searchResults = $carshareRepository->searchCarshares(
+                    $data['departureLocation'],
+                    $data['arrivalLocation'],
+                    $data['date'],
+                    $data['passengers']
+                );
+                
+                $this->addFlash('success', 'Recherche effectuée pour ' . count($searchResults) . ' résultat(s).');
+            } else {
+                $this->addFlash('error', 'Veuillez corriger les erreurs dans le formulaire.');
+            }
+        }
+        
+        return $this->render('carshare/search.html.twig', [
+            'searchForm' => $form->createView(),
+            'searchResults' => $searchResults,
+            'searchPerformed' => $searchPerformed,
         ]);
     }
     
