@@ -28,7 +28,9 @@ Encore
 
   // Add alias for controllers.json
   .addAliases({
-    "@symfony/stimulus-bridge/controllers.json": "./assets/controllers.json",
+    "@symfony/stimulus-bridge/controllers.json": require.resolve(
+      "./assets/controllers.json"
+    ),
   })
 
   // will require an extra script tag for runtime.js

@@ -261,3 +261,71 @@ footer .social-icons i:hover {
   text-align: center;
   margin-bottom: 1rem;
 }
+
+/* Carshare specific styles */
+.carshare-info p {
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.carshare-info strong {
+  color: #79a617;
+}
+
+.card {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.card-head {
+  background-color: #79a617;
+  color: white;
+  padding: 1rem;
+  margin: 0;
+  border-radius: 8px 8px 0 0;
+  font-size: 1.1rem;
+}
+
+.card-body {
+  padding: 1rem;
+}
+
+.card-foot {
+  padding: 1rem;
+  background-color: #f8f9fa;
+  border-radius: 0 0 8px 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: bold;
+  color: #79a617;
+}
+
+.btn-gallery {
+  background-color: #79a617;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  text-decoration: none;
+  font-size: 0.9rem;
+  transition: background-color 0.2s ease;
+}
+
+.btn-gallery:hover {
+  background-color: #5d7d0f;
+  color: white;
+}
+
+.gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+  padding: 2rem 0;
+}
