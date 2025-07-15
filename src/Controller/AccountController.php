@@ -16,6 +16,12 @@ final class AccountController extends AbstractController
     #[Route('/account', name: 'app_account')]
     public function index(): Response
     {
+        $user = $this->getUser();
+        if (!$user || !$user instanceof \App\Entity\User) {
+            $this->addFlash('danger', 'Vous devez être connecté pour accéder à votre compte.');
+            return $this->redirectToRoute('app_login');
+        }
+
         return $this->render('account/index.html.twig', [
             'controller_name' => 'AccountController',
         ]);
@@ -24,8 +30,12 @@ final class AccountController extends AbstractController
        #[Route('/compte/modifier-mot-de-passe', name: 'app_account_modify_pwd')]
     public function password(Request $request, UserPasswordHasherInterface $passwordHasher, EntityManagerInterface $entityManager): Response
     {
+        $user = $this->getUser();
+        if (!$user || !$user instanceof \App\Entity\User) {
+            $this->addFlash('danger', 'Vous devez être connecté.');
+            return $this->redirectToRoute('app_login');
+        }
 
-        $user= $this->getUser();
         $form = $this->createForm(PasswordUserType::class, $user, ['passwordHasher' => $passwordHasher]);
         $form->handleRequest($request);
         if($form->isSubmitted() && $form->isValid())

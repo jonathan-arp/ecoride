@@ -39,18 +39,19 @@ class CreateParameterCommand extends Command
         }
 
         $parameters = [
-            ['name' => 'Fumeur', 'value' => 'Oui', 'icon' => 'fa-smoking'],
-            ['name' => 'Non-fumeur', 'value' => 'Non', 'icon' => 'fa-smoking-ban'],
-            ['name' => 'Avec animaux', 'value' => 'Accepté', 'icon' => 'fa-paw'],
-            ['name' => 'Sans animaux', 'value' => 'Refusé', 'icon' => 'fa-ban'],
-            ['name' => 'Avec enfants', 'value' => 'Accepté', 'icon' => 'fa-child'],
-            ['name' => 'Sans enfants', 'value' => 'Refusé', 'icon' => 'fa-user-times'],
-            ['name' => 'Musique autorisée', 'value' => 'Oui', 'icon' => 'fa-music'],
-            ['name' => 'Voyage silencieux', 'value' => 'Préféré', 'icon' => 'fa-volume-off'],
-            ['name' => 'Conversation', 'value' => 'Aimé', 'icon' => 'fa-comments'],
-            ['name' => 'Lecture pendant trajet', 'value' => 'Préféré', 'icon' => 'fa-book'],
-            ['name' => 'Arrêts fréquents', 'value' => 'Accepté', 'icon' => 'fa-pause'],
-            ['name' => 'Trajet direct', 'value' => 'Préféré', 'icon' => 'fa-arrow-right'],
+            ['name' => 'Fumeur', 'value' => 'Oui', 'icon' => 'fas fa-smoking'],
+            ['name' => 'Non-fumeur', 'value' => 'Non', 'icon' => 'fas fa-smoking-ban'],
+            ['name' => 'Avec animaux', 'value' => 'Accepté', 'icon' => 'fas fa-paw'],
+            ['name' => 'Sans animaux', 'value' => 'Refusé', 'icon' => 'fas fa-ban'],
+            ['name' => 'Avec enfants', 'value' => 'Accepté', 'icon' => 'fas fa-child'],
+            ['name' => 'Sans enfants', 'value' => 'Refusé', 'icon' => 'fas fa-user-times'],
+            ['name' => 'Musique autorisée', 'value' => 'Oui', 'icon' => 'fas fa-music'],
+            ['name' => 'Voyage silencieux', 'value' => 'Préféré', 'icon' => 'fas fa-volume-off'],
+            ['name' => 'Conversation', 'value' => 'Aimé', 'icon' => 'fas fa-comments'],
+            ['name' => 'Lecture pendant trajet', 'value' => 'Préféré', 'icon' => 'fas fa-book'],
+            ['name' => 'Arrêts fréquents', 'value' => 'Accepté', 'icon' => 'fas fa-pause'],
+            ['name' => 'Trajet direct', 'value' => 'Préféré', 'icon' => 'fas fa-arrow-right'],
+            ['name' => 'Féminin', 'value' => 'En priorité', 'icon' => 'fas fa-venus'],
         ];
 
         foreach ($parameters as $paramData) {

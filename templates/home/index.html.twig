@@ -4,6 +4,90 @@
 
 {% block body %}
 
+<!-- Search Section -->
+<section class="bg-success text-white py-4 shadow-sm">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-lg-10">
+        <h2 class="text-center mb-4">
+          <i class="fas fa-search me-2"></i>Recherchez votre covoiturage
+        </h2>
+        
+        <div class="card border-0 shadow">
+          <div class="card-body p-4">
+            {{ form_start(searchForm) }}
+            
+            <div class="row g-3">
+              <div class="col-md-3">
+                <div class="form-group">
+                  {{ form_label(searchForm.departureLocation, null, {'label_attr': {'class': 'form-label fw-bold text-dark'}}) }}
+                  <div class="input-group">
+                    <span class="input-group-text bg-light">
+                      <i class="fas fa-map-marker-alt text-success"></i>
+                    </span>
+                    {{ form_widget(searchForm.departureLocation) }}
+                  </div>
+                </div>
+              </div>
+              
+              <div class="col-md-3">
+                <div class="form-group">
+                  {{ form_label(searchForm.arrivalLocation, null, {'label_attr': {'class': 'form-label fw-bold text-dark'}}) }}
+                  <div class="input-group">
+                    <span class="input-group-text bg-light">
+                      <i class="fas fa-flag-checkered text-danger"></i>
+                    </span>
+                    {{ form_widget(searchForm.arrivalLocation) }}
+                  </div>
+                </div>
+              </div>
+              
+              <div class="col-md-2">
+                <div class="form-group">
+                  {{ form_label(searchForm.passengers, null, {'label_attr': {'class': 'form-label fw-bold text-dark'}}) }}
+                  <div class="input-group">
+                    <span class="input-group-text bg-light">
+                      <i class="fas fa-users text-primary"></i>
+                    </span>
+                    {{ form_widget(searchForm.passengers) }}
+                  </div>
+                </div>
+              </div>
+              
+              <div class="col-md-2">
+                <div class="form-group">
+                  {{ form_label(searchForm.date, null, {'label_attr': {'class': 'form-label fw-bold text-dark'}}) }}
+                  <div class="input-group">
+                    <span class="input-group-text bg-light">
+                      <i class="fas fa-calendar text-warning"></i>
+                    </span>
+                    {{ form_widget(searchForm.date) }}
+                  </div>
+                </div>
+              </div>
+              
+              <div class="col-md-2 d-flex align-items-end">
+                <div class="form-group w-100">
+                  {{ form_widget(searchForm.search, {'attr': {'class': 'btn btn-success w-100'}}) }}
+                </div>
+              </div>
+            </div>
+            
+            {{ form_end(searchForm) }}
+          </div>
+        </div>
+        
+        <div class="text-center mt-3">
+          <small class="text-light">
+            <i class="fas fa-info-circle me-1"></i>
+            Recherche élargie : ±3 jours autour de votre date
+          </small>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <section class="container my-5">
   <div class="row align-items-center mt-3">
     <!-- IMG2 -->
