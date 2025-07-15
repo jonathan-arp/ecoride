@@ -84,6 +84,11 @@ header {
   position: relative;
   z-index: 10;
 }
+header .navbar {
+  padding: 1rem 0;
+  width: 80%;
+  margin: 0 auto;
+}
 
 .social-icons a {
   color: #516e11;
@@ -210,4 +215,49 @@ footer .social-icons i:hover {
   text-align: center;
   padding: 10px 10px;
   font-weight: bold;
+}
+
+.form-container {
+  min-height: 60vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.form-wrapper {
+  background-color: #f8f9fa;
+  border-radius: 10px;
+  padding: 2rem;
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+/*formulaire*/
+
+.input-group-text {
+  padding: 10.8px 12px;
+}
+.form-group {
+  margin: 10px 0px;
+}
+.btn-inscrire {
+  margin-top: 1.5rem;
+  background-color: #0d5298;
+  color: white;
+  width: 100%;
+}
+.btn-inscrire:hover {
+  color: #0d5298;
+  background-color: white;
+  border: 2px solid #0d5298;
+  width: 100%;
+}
+
+.form-control {
+  margin-bottom: 1rem;
+}
+
+.login-error {
+  color: #dc3545;
+  text-align: center;
+  margin-bottom: 1rem;
 }

@@ -2,11 +2,13 @@
 
 {% block body %}
 <h1 class="text-center mt-3">Inscription</h1>
-<div class="form-container ">
-    <div class="col-md-6 offset-md-3 form-wrapper">
-        
-        {{ form_start(form) }}
-         <div class="form-group">
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            {{ form_start(form) }}
+            <div class="row">
+                <div class="col-md-6 col-sm-12">
+            <div class="form-group">
                 {{ form_label(form.lastname) }}
                 {{ form_widget(form.lastname, {'attr': {'class': 'form-control'}}) }}
             </div>
@@ -39,6 +41,8 @@
                 {{ form_label(form.plainPassword.second) }}
                 {{ form_widget(form.plainPassword.second, {'attr': {'class': 'form-control'}}) }}
             </div>
+        </div>
+        <div class="col-md-6 col-sm-12">
              <div class="form-group">
                 {{ form_label(form.phone) }}
                 {{ form_widget(form.phone, {'attr': {'class': 'form-control'}}) }}
@@ -52,11 +56,14 @@
                 {{ form_widget(form.birthday, {'attr': {'class': 'form-control'}}) }}
             </div>
             
-           <button type="submit" class="btn bg-gold white">
+           <button type="submit" class="btn btn-outline-green  white">
                     <i class="fas fa-user-plus me-2"></i>
                     S'inscrire
             </button>
-        {{ form_end(form) }}
+        </div>
+            </div>
+            {{ form_end(form) }}
+        </div>
     </div>
 </div>
 {% endblock %}
