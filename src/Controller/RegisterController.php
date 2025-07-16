@@ -30,6 +30,9 @@ final class RegisterController extends AbstractController
                 // Set default role
                 $user->setRoles(['ROLE_USER']);
                 
+                // Set default photo
+                $user->setPhoto('default.jpg');
+                
                 // Save the user
                 $entityManager->persist($user);
                 $entityManager->flush();

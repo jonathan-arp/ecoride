@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\CarshareRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: CarshareRepository::class)]
@@ -34,6 +36,15 @@ class Carshare
     #[ORM\Column(length: 255)]
     private ?string $status = null;
 
+    #[ORM\Column(length: 50, nullable: true)]
+    private ?string $tripStatus = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?\DateTimeImmutable $startedAt = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?\DateTimeImmutable $arrivedAt = null;
+
     #[ORM\Column(nullable: true)]
     private ?int $place = null;
 
@@ -47,6 +58,17 @@ class Carshare
     #[ORM\ManyToOne(inversedBy: 'carshares')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Car $car = null;
+
+    /**
+     * @var Collection<int, Reservation>
+     */
+    #[ORM\OneToMany(targetEntity: Reservation::class, mappedBy: 'carshare', orphanRemoval: true)]
+    private Collection $reservations;
+
+    public function __construct()
+    {
+        $this->reservations = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -109,6 +131,42 @@ class Carshare
     public function setStatus(string $status): static
     {
         $this->status = $status;
+
+        return $this;
+    }
+
+    public function getTripStatus(): ?string
+    {
+        return $this->tripStatus;
+    }
+
+    public function setTripStatus(?string $tripStatus): static
+    {
+        $this->tripStatus = $tripStatus;
+
+        return $this;
+    }
+
+    public function getStartedAt(): ?\DateTimeImmutable
+    {
+        return $this->startedAt;
+    }
+
+    public function setStartedAt(?\DateTimeImmutable $startedAt): static
+    {
+        $this->startedAt = $startedAt;
+
+        return $this;
+    }
+
+    public function getArrivedAt(): ?\DateTimeImmutable
+    {
+        return $this->arrivedAt;
+    }
+
+    public function setArrivedAt(?\DateTimeImmutable $arrivedAt): static
+    {
+        $this->arrivedAt = $arrivedAt;
 
         return $this;
     }
@@ -218,5 +276,217 @@ class Carshare
     public function getFormattedRoute(): string
     {
         return $this->getFormattedStartLocation() . ' → ' . $this->getFormattedEndLocation();
+    }
+
+    /**
+     * @return Collection<int, Reservation>
+     */
+    public function getReservations(): Collection
+    {
+        return $this->reservations;
+    }
+
+    public function addReservation(Reservation $reservation): static
+    {
+        if (!$this->reservations->contains($reservation)) {
+            $this->reservations->add($reservation);
+            $reservation->setCarshare($this);
+        }
+
+        return $this;
+    }
+
+    public function removeReservation(Reservation $reservation): static
+    {
+        if ($this->reservations->removeElement($reservation)) {
+            // set the owning side to null (unless already changed)
+            if ($reservation->getCarshare() === $this) {
+                $reservation->setCarshare(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * Get available places (total places - reserved places)
+     */
+    public function getAvailablePlaces(): int
+    {
+        $reservedPlaces = 0;
+        foreach ($this->reservations as $reservation) {
+            if ($reservation->getStatus() === 'CONFIRMED') {
+                $reservedPlaces += $reservation->getPassengersCount();
+            }
+        }
+        
+        return max(0, $this->place - $reservedPlaces);
+    }
+
+    /**
+     * Check if carshare has available places
+     */
+    public function hasAvailablePlaces(): bool
+    {
+        return $this->getAvailablePlaces() > 0;
+    }
+
+    /**
+     * Check if user can reserve this carshare
+     */
+    public function canBeReservedBy(User $user): bool
+    {
+        // Cannot reserve own carshare
+        if ($this->driver === $user) {
+            return false;
+        }
+        
+        // Must have available places
+        if (!$this->hasAvailablePlaces()) {
+            return false;
+        }
+        
+        // User must be able to be passenger
+        if (!$user->canBePassenger()) {
+            return false;
+        }
+        
+        // User must not already have a reservation for this carshare
+        foreach ($this->reservations as $reservation) {
+            if ($reservation->getPassenger() === $user && $reservation->getStatus() === 'CONFIRMED') {
+                return false;
+            }
+        }
+        
+        return true;
+    }
+
+    /**
+     * Start the trip
+     */
+    public function startTrip(): void
+    {
+        if ($this->tripStatus !== null) {
+            throw new \LogicException('Trip is already started or completed');
+        }
+
+        $this->tripStatus = 'STARTED';
+        $this->startedAt = new \DateTimeImmutable();
+    }
+
+    /**
+     * Mark trip as arrived (driver confirms arrival)
+     */
+    public function arriveTrip(): void
+    {
+        if ($this->tripStatus !== 'STARTED') {
+            throw new \LogicException('Trip must be started before arriving');
+        }
+
+        $this->tripStatus = 'ARRIVED';
+        $this->arrivedAt = new \DateTimeImmutable();
+    }
+
+    /**
+     * Check if trip can be started
+     * Trip can only be started within 15 minutes of departure time (before or after)
+     */
+    public function canBeStarted(): bool
+    {
+        // Basic checks: trip not started yet and has reservations
+        if ($this->tripStatus !== null || $this->getReservations()->count() === 0) {
+            return false;
+        }
+
+        // Time constraint: within 15 minutes of departure time
+        if ($this->start === null) {
+            return false;
+        }
+
+        $now = new \DateTimeImmutable();
+        $departureTime = $this->start;
+        
+        // Calculate the time difference in minutes
+        $timeDifference = $now->getTimestamp() - $departureTime->getTimestamp();
+        $timeDifferenceMinutes = abs($timeDifference) / 60;
+        
+        // Allow starting 15 minutes before or after scheduled departure
+        return $timeDifferenceMinutes <= 15;
+    }
+
+    /**
+     * Check if carshare is expired (1 hour after departure time without starting)
+     */
+    public function isExpired(): bool
+    {
+        // Only check if trip hasn't started yet
+        if ($this->tripStatus !== null || $this->start === null) {
+            return false;
+        }
+
+        $now = new \DateTimeImmutable();
+        $departureTime = $this->start;
+        
+        // Check if it's been more than 1 hour since departure time
+        $timeDifference = $now->getTimestamp() - $departureTime->getTimestamp();
+        $hoursSinceDeparture = $timeDifference / 3600;
+        
+        return $hoursSinceDeparture > 1;
+    }
+
+    /**
+     * Mark carshare as cancelled due to expiration
+     */
+    public function markAsExpired(): void
+    {
+        if ($this->tripStatus !== null) {
+            throw new \LogicException('Cannot mark an already started trip as expired');
+        }
+
+        $this->tripStatus = 'EXPIRED';
+        // Note: You might want to add an expiredAt field to track when this happened
+    }
+
+    /**
+     * Check if trip is waiting for passenger validation
+     */
+    public function isWaitingForValidation(): bool
+    {
+        return $this->tripStatus === 'ARRIVED';
+    }
+
+    /**
+     * Check if trip is completed (all passengers validated)
+     */
+    public function isCompleted(): bool
+    {
+        return $this->tripStatus === 'COMPLETED';
+    }
+
+    /**
+     * Complete the trip (all passengers have validated)
+     * Also deducts the platform cost from the driver
+     */
+    public function completeTrip(): void
+    {
+        if ($this->tripStatus !== 'ARRIVED') {
+            throw new \LogicException('Trip must be in ARRIVED status before completion');
+        }
+
+        // Check if all reservations are validated
+        foreach ($this->reservations as $reservation) {
+            if (!$reservation->isPassengerValidated()) {
+                throw new \LogicException('All passengers must validate before trip completion');
+            }
+        }
+
+        $this->tripStatus = 'COMPLETED';
+
+        // Deduct platform cost from driver (2 credits = 2 euros)
+        $this->driver->spendCredits(
+            2.0,
+            'Frais de plateforme pour covoiturage terminé',
+            $this
+        );
     }
 }

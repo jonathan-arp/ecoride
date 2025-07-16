@@ -9,7 +9,9 @@
         </a>
     </li>
     <li class="nav-item">
-        <a class="nav-link {% if app.request.attributes.get('_route') == 'app_account_modify_pwd' %}active{% endif %}" href="{{ path('app_account_modify_pwd') }}">Modifier mon mot de passe</a>
+        <a class="nav-link {% if app.request.attributes.get('_route') == 'app_account_modify_pwd' %}active{% endif %}" href="{{ path('app_account_modify_pwd') }}">
+            <i class="fas fa-key me-2"></i>Modifier mon mot de passe
+        </a>
     </li>
     
     {% if app.user.canDrive() %}
@@ -38,6 +40,22 @@
             <i class="fas fa-list me-2"></i>Mes covoiturages
         </a>
     </li>
+    
+    <!-- Section Crédits et Réservations -->
+    <li class="nav-item">
+        <a class="nav-link {% if app.request.attributes.get('_route') starts with 'app_credits' %}active{% endif %}" href="{{ path('app_credits_index') }}">
+            <i class="fas fa-coins me-2"></i>Mes crédits <span class="badge bg-primary ms-1">{{ app.user.creditBalance|number_format(0) }}</span>
+        </a>
+    </li>
+    
+    {% if app.user.canBePassenger() %}
+    <li class="nav-item">
+        <a class="nav-link {% if app.request.attributes.get('_route') == 'app_reservations_index' %}active{% endif %}" href="{{ path('app_reservations_index') }}">
+            <i class="fas fa-bookmark me-2"></i>Mes réservations
+        </a>
+    </li>
+    {% endif %}
+    
     {% else %}
     <li class="nav-item">
         <small class="nav-link text-muted">
