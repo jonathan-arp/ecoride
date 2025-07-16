@@ -1,0 +1,181 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Avis sur {{ driver.firstname }} {{ driver.lastname }} - EcoRide{% endblock %}
+
+{% block body %}
+<div class="container my-5">
+    {% if app.user and app.user.id == driver.id %}
+        {# Show account layout if user is viewing their own reviews #}
+        <h1 class="text-center mb-4">Mon compte - Mes avis</h1>
+        <div class="row">
+            <div class="col-md-3 col-sm-12 mb-4">
+                {% include 'account/_menu.html.twig' %}
+            </div>
+            <div class="col-md-9 col-sm-12">
+    {% else %}
+        {# Show normal driver reviews layout for other users #}
+        <div class="row">
+            <div class="col-12">
+    {% endif %}
+            <!-- Driver Header -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    {% if not (app.user and app.user.id == driver.id) %}
+                        {# Full header for external viewers #}
+                        <div class="row align-items-center">
+                            <div class="col-md-2 text-center">
+                                {% if driver.photo %}
+                                    <img src="{{ asset('uploads/user_photos/' ~ driver.photo) }}" 
+                                         alt="Photo de {{ driver.firstname }}" 
+                                         class="rounded-circle img-fluid" 
+                                         style="width: 120px; height: 120px; object-fit: cover;">
+                                {% else %}
+                                    <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center text-white mx-auto" 
+                                         style="width: 120px; height: 120px;">
+                                        <i class="fas fa-user fa-3x"></i>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <h2 class="mb-2">{{ driver.firstname }} {{ driver.lastname }}</h2>
+                                <p class="text-muted mb-2">
+                                    <i class="fas fa-user-tie me-1"></i>
+                                    Conducteur EcoRide
+                                </p>
+                    {% else %}
+                        {# Compact header for own reviews #}
+                        <div class="text-center">
+                            <h3 class="mb-2">
+                                <i class="fas fa-star me-2"></i>
+                                Mes avis reçus
+                            </h3>
+                    {% endif %}
+                            {% if averageRating %}
+                                <div class="d-flex align-items-center mb-2 {% if app.user and app.user.id == driver.id %}justify-content-center{% endif %}">
+                                    <div class="me-2">
+                                        {% set rating = averageRating %}
+                                        {% for i in 1..5 %}
+                                            {% if i <= rating %}
+                                                <i class="fas fa-star text-warning fs-5"></i>
+                                            {% elseif i - 0.5 <= rating %}
+                                                <i class="fas fa-star-half-alt text-warning fs-5"></i>
+                                            {% else %}
+                                                <i class="far fa-star text-warning fs-5"></i>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                    <span class="fw-bold fs-5">{{ rating|number_format(1) }}/5</span>
+                                    <span class="text-muted ms-2">({{ totalReviews }} avis)</span>
+                                </div>
+                            {% else %}
+                                <div class="text-muted {% if app.user and app.user.id == driver.id %}text-center{% endif %}">
+                                    <i class="fas fa-star-o me-1"></i>
+                                    {% if app.user and app.user.id == driver.id %}
+                                        Vous n'avez pas encore reçu d'avis
+                                    {% else %}
+                                        Nouveau conducteur - Aucun avis pour le moment
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+                    
+                    {% if not (app.user and app.user.id == driver.id) %}
+                            </div>
+                            <div class="col-md-4 text-end">
+                                <a href="{{ path('app_carshare_search') }}" class="btn btn-outline-success">
+                                    <i class="fas fa-search me-2"></i>
+                                    Rechercher ses trajets
+                                </a>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Reviews Section -->
+            {% if reviews|length > 0 %}
+                <div class="card shadow-sm">
+                    <div class="card-header bg-light">
+                        <h4 class="mb-0">
+                            <i class="fas fa-comments me-2"></i>
+                            Avis des passagers ({{ totalReviews }})
+                        </h4>
+                    </div>
+                    <div class="card-body p-0">
+                        {% for review in reviews %}
+                            <div class="border-bottom p-4 {% if loop.last %}border-bottom-0{% endif %}">
+                                <div class="row">
+                                    <div class="col-md-2">
+                                        <div class="text-center">
+                                            {% if review.passenger.photo %}
+                                                <img src="{{ asset('uploads/user_photos/' ~ review.passenger.photo) }}" 
+                                                     alt="Photo de {{ review.passenger.firstname }}" 
+                                                     class="rounded-circle" 
+                                                     style="width: 50px; height: 50px; object-fit: cover;">
+                                            {% else %}
+                                                <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center text-white mx-auto" 
+                                                     style="width: 50px; height: 50px;">
+                                                    <i class="fas fa-user"></i>
+                                                </div>
+                                            {% endif %}
+                                            <div class="small text-muted mt-1">
+                                                {{ review.passenger.firstname }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-10">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <div>
+                                                <!-- Star Rating -->
+                                                <div class="mb-1">
+                                                    {% for i in 1..5 %}
+                                                        {% if i <= review.rating %}
+                                                            <i class="fas fa-star text-warning"></i>
+                                                        {% else %}
+                                                            <i class="far fa-star text-warning"></i>
+                                                        {% endif %}
+                                                    {% endfor %}
+                                                    <span class="fw-bold ms-1">{{ review.rating }}/5</span>
+                                                </div>
+                                                <!-- Trip Route -->
+                                                <div class="small text-muted">
+                                                    <i class="fas fa-route me-1"></i>
+                                                    {{ review.carshare.formattedRoute }}
+                                                </div>
+                                            </div>
+                                            <div class="text-end">
+                                                <small class="text-muted">
+                                                    {{ review.createdAt|date('d/m/Y') }}
+                                                </small>
+                                            </div>
+                                        </div>
+                                        
+                                        {% if review.comment %}
+                                            <div class="mt-2">
+                                                <p class="mb-0">{{ review.comment|nl2br }}</p>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% else %}
+                <div class="card shadow-sm">
+                    <div class="card-body text-center py-5">
+                        <i class="fas fa-comments fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">Aucun avis publié</h5>
+                        <p class="text-muted">Ce conducteur n'a pas encore reçu d'avis de la part des passagers.</p>
+                    </div>
+                </div>
+            {% endif %}
+            
+        {% if app.user and app.user.id == driver.id %}
+            </div> {# col-md-9 #}
+        {% endif %}
+        </div> {# row #}
+    {% if app.user and app.user.id == driver.id %}
+        {# Additional closing div for account layout #}
+    {% endif %}
+</div>
+{% endblock %}

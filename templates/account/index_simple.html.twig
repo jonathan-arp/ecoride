@@ -1,0 +1,50 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mon compte - EcoRide{% endblock %}
+
+{% block body %}
+{% if not app.user %}
+    <div class="container mt-5">
+        <div class="alert alert-warning text-center">
+            <h4><i class="fas fa-exclamation-triangle me-2"></i>Accès refusé</h4>
+            <p>Vous devez être connecté pour accéder à votre compte.</p>
+            <a href="{{ path('app_login') }}" class="btn btn-primary">
+                <i class="fas fa-sign-in-alt me-2"></i>Se connecter
+            </a>
+        </div>
+    </div>
+{% else %}
+<h1 class="text-center mt-5">Mon compte</h1>
+<div class="container my-5">
+    <div class="card">
+        <div class="card-header bg-success text-white">
+            <h4>Mes informations personnelles</h4>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>Moi-même</h5>
+                    <div class="mb-2">
+                        <span class="data-label">Nom:</span> {{ app.user.lastname }}
+                    </div>
+                    <div class="mb-2">
+                        <span class="data-label">Prénom:</span> {{ app.user.firstname }}
+                    </div>
+                    <div class="mb-2">
+                        <span class="data-label">Email:</span> {{ app.user.email }}
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card-footer">
+            <a href="{{ path('app_account_modify_pwd') }}" class="btn btn-outline-primary">
+                <i class="fas fa-key me-2"></i>Modifier mot de passe
+            </a>
+            <a href="{{ path('app_logout') }}" class="btn btn-outline-danger">
+                <i class="fas fa-sign-out-alt me-2"></i>Déconnexion
+            </a>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

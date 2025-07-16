@@ -388,26 +388,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      */
     public function __sleep(): array
     {
-        // Explicitly list properties to serialize, excluding problematic ones
-        return [
-            'id',
-            'email', 
-            'roles',
-            'password',
-            'lastname',
-            'firstname',
-            'surname',
-            'phone',
-            'address',
-            'birthday',
-            'photo',
-            'parameters',
-            'cars',
-            'carshares',
-            'credits',
-            'reservations',
-            'fonction'
-        ];
+        // Get all properties except photoFile
+        $properties = array_keys(get_object_vars($this));
+        
+        // Remove photoFile as it cannot be serialized
+        return array_filter($properties, function($property) {
+            return $property !== 'photoFile';
+        });
     }
 
     public function getFonction(): ?Fonction

@@ -39,8 +39,9 @@ class CarshareController extends AbstractController
             throw $this->createNotFoundException('Carshare non trouvé');
         }
 
+        // TODO: Remplacer par un cron job pour éviter les problèmes de navigation rapide
         // Check and mark if expired
-        $this->checkAndMarkExpiredCarshares([$carshare]);
+        // $this->checkAndMarkExpiredCarshares([$carshare]);
 
         return $this->render('carshare/fiche_carshare.html.twig', [
             'carshare' => $carshare,
@@ -88,8 +89,9 @@ class CarshareController extends AbstractController
                     $data['passengers']
                 );
 
+                // TODO: Remplacer par un cron job pour éviter les problèmes de navigation rapide
                 // Check and mark expired carshares
-                $this->checkAndMarkExpiredCarshares($searchResults);
+                // $this->checkAndMarkExpiredCarshares($searchResults);
 
                 // If no results found, look for alternative dates
                 $alternativeDates = [];
@@ -194,22 +196,32 @@ class CarshareController extends AbstractController
     #[Route('/carshare/new', name: 'app_carshare_new')]
     public function new(Request $request): Response
     {
-        $user = $this->getUser();
+        $sessionUser = $this->getUser();
         
         // Vérifier si l'utilisateur a le droit de créer un covoiturage
-        if (!$user instanceof \App\Entity\User || !$user->canDrive()) {
+        if (!$sessionUser instanceof \App\Entity\User || !$sessionUser->canDrive()) {
             $this->addFlash('error', 'Vous devez être déclaré comme conducteur ou conducteur/passager pour créer un covoiturage.');
             return $this->redirectToRoute('app_account_profile');
         }
+
+        // Utiliser une entité fraîche pour éviter la corruption de session
+        $userId = $sessionUser->getId();
+        $freshUser = $this->entityManager->getRepository(\App\Entity\User::class)->find($userId);
+        
+        if (!$freshUser) {
+            return $this->redirectToRoute('app_login');
+        }
         
         // Vérifier si l'utilisateur a au moins une voiture
-        if ($user->getCars()->isEmpty()) {
+        if ($freshUser->getCars()->isEmpty()) {
             $this->addFlash('error', 'Vous devez d\'abord ajouter une voiture pour créer un covoiturage.');
+            // Détacher l'entité pour éviter les problèmes de navigation rapide
+            $this->entityManager->detach($freshUser);
             return $this->redirectToRoute('app_car_new');
         }
         
         $carshare = new Carshare();
-        $carshare->setDriver($user);
+        $carshare->setDriver($freshUser);
         
         $form = $this->createForm(CarshareType::class, $carshare);
         $form->handleRequest($request);
@@ -219,21 +231,51 @@ class CarshareController extends AbstractController
             $this->entityManager->flush();
 
             $this->addFlash('success', 'Votre covoiturage a été créé avec succès !');
+            
+            // Détacher l'entité pour éviter les problèmes de navigation rapide
+            $this->entityManager->detach($freshUser);
+            
             return $this->redirectToRoute('app_carshare_by_id', ['id' => $carshare->getId()]);
         }
 
-        return $this->render('carshare/new.html.twig', [
+        // For Turbo compatibility, when form has errors, return proper response
+        $response = $this->render('carshare/new.html.twig', [
             'form' => $form->createView(),
         ]);
+
+        // Set proper status code for form errors
+        if ($form->isSubmitted() && !$form->isValid()) {
+            $response->setStatusCode(422); // Unprocessable Entity
+        }
+
+        // Détacher l'entité pour éviter les problèmes de navigation rapide
+        $this->entityManager->detach($freshUser);
+
+        return $response;
+
+        // Set proper status code for form errors
+        if ($form->isSubmitted() && !$form->isValid()) {
+            $response->setStatusCode(422); // Unprocessable Entity
+        }
+
+        return $response;
     }
 
     #[Route('/carshare/my', name: 'app_carshare_my')]
     public function myCarshares(): Response
     {
-        $user = $this->getUser();
+        $sessionUser = $this->getUser();
         
-        if (!$user instanceof \App\Entity\User) {
+        if (!$sessionUser instanceof \App\Entity\User) {
             $this->addFlash('error', 'Vous devez être connecté.');
+            return $this->redirectToRoute('app_login');
+        }
+
+        // Utiliser une entité fraîche pour éviter la corruption de session
+        $userId = $sessionUser->getId();
+        $freshUser = $this->entityManager->getRepository(\App\Entity\User::class)->find($userId);
+        
+        if (!$freshUser) {
             return $this->redirectToRoute('app_login');
         }
 
@@ -241,25 +283,29 @@ class CarshareController extends AbstractController
         
         // Obtenir les covoiturages en tant que conducteur
         $asDriver = [];
-        if ($user->canDrive()) {
-            $asDriver = $carshareRepository->findBy(['driver' => $user]);
+        if ($freshUser->canDrive()) {
+            $asDriver = $carshareRepository->findBy(['driver' => $freshUser]);
+            // TODO: Remplacer par un cron job pour éviter les problèmes de navigation rapide
             // Check and mark expired carshares
-            $this->checkAndMarkExpiredCarshares($asDriver);
+            // $this->checkAndMarkExpiredCarshares($asDriver);
         }
+
+        // Détacher l'entité pour éviter les problèmes de navigation rapide
+        $this->entityManager->detach($freshUser);
 
         return $this->render('carshare/my_carshares.html.twig', [
             'asDriver' => $asDriver,
-            'user' => $user,
+            'user' => $freshUser,
         ]);
     }
     
     #[Route('/carshare/{id}/edit', name: 'app_carshare_edit')]
     public function edit(Request $request, Carshare $carshare): Response
     {
-        $user = $this->getUser();
+        $sessionUser = $this->getUser();
         
         // Vérifier que l'utilisateur est le conducteur de ce covoiturage
-        if (!$user instanceof \App\Entity\User || $carshare->getDriver() !== $user) {
+        if (!$sessionUser instanceof \App\Entity\User || $carshare->getDriver()->getId() !== $sessionUser->getId()) {
             $this->addFlash('error', 'Vous ne pouvez modifier que vos propres covoiturages.');
             return $this->redirectToRoute('app_carshare_my');
         }
@@ -283,10 +329,10 @@ class CarshareController extends AbstractController
     #[Route('/carshare/{id}/delete', name: 'app_carshare_delete', methods: ['POST', 'DELETE'])]
     public function delete(Request $request, Carshare $carshare): Response
     {
-        $user = $this->getUser();
+        $sessionUser = $this->getUser();
         
         // Vérifier que l'utilisateur est le conducteur de ce covoiturage
-        if (!$user instanceof \App\Entity\User || $carshare->getDriver() !== $user) {
+        if (!$sessionUser instanceof \App\Entity\User || $carshare->getDriver()->getId() !== $sessionUser->getId()) {
             $this->addFlash('error', 'Vous ne pouvez supprimer que vos propres covoiturages.');
             return $this->redirectToRoute('app_carshare_my');
         }
@@ -342,14 +388,15 @@ class CarshareController extends AbstractController
 
     private function checkAndMarkExpiredCarshares(array $carshares): void
     {
+        $modified = false;
         foreach ($carshares as $carshare) {
-            if ($carshare->isExpired()) {
+            if ($carshare->isExpired() && $carshare->getStatus() !== 'EXPIRED') {
                 $carshare->markAsExpired();
                 $this->entityManager->persist($carshare);
+                $modified = true;
             }
         }
-        
-        if (!empty($carshares)) {
+        if ($modified) {
             $this->entityManager->flush();
         }
     }

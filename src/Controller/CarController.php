@@ -26,7 +26,22 @@ final class CarController extends AbstractController
     public function index(): Response
     {
         $user = $this->getUser();
-        $cars = $this->carRepository->findBy(['user' => $user]);
+        if (!$user || !$user instanceof \App\Entity\User) {
+            return $this->redirectToRoute('app_login');
+        }
+
+        // Get a fresh copy of the user to avoid stale entity issues
+        $userId = $user->getId();
+        $freshUser = $this->entityManager->getRepository(\App\Entity\User::class)->find($userId);
+        
+        if (!$freshUser) {
+            return $this->redirectToRoute('app_login');
+        }
+
+        $cars = $this->carRepository->findBy(['user' => $freshUser]);
+
+        // Détacher l'entité pour éviter les conflits lors de navigation rapide
+        $this->entityManager->detach($freshUser);
 
         return $this->render('car/index.html.twig', [
             'cars' => $cars,
@@ -36,16 +51,24 @@ final class CarController extends AbstractController
     #[Route('/new', name: 'app_car_new')]
     public function new(Request $request): Response
     {
-        $user = $this->getUser();
+        $sessionUser = $this->getUser();
         
         // Vérifier si l'utilisateur a le droit d'ajouter une voiture
-        if (!$user instanceof \App\Entity\User || !$user->canDrive()) {
+        if (!$sessionUser instanceof \App\Entity\User || !$sessionUser->canDrive()) {
             $this->addFlash('error', 'Vous devez être déclaré comme conducteur ou conducteur/passager pour ajouter une voiture.');
             return $this->redirectToRoute('app_account_profile');
         }
         
+        // Utiliser une entité fraîche pour éviter la corruption de session
+        $userId = $sessionUser->getId();
+        $freshUser = $this->entityManager->getRepository(\App\Entity\User::class)->find($userId);
+        
+        if (!$freshUser) {
+            return $this->redirectToRoute('app_login');
+        }
+        
         $car = new Car();
-        $car->setUser($user);
+        $car->setUser($freshUser);
         
         $form = $this->createForm(CarType::class, $car);
         $form->handleRequest($request);
@@ -57,6 +80,9 @@ final class CarController extends AbstractController
             $this->addFlash('success', 'Votre véhicule a été ajouté avec succès !');
             return $this->redirectToRoute('app_car_index');
         }
+
+        // Détacher l'entité pour éviter les conflits
+        $this->entityManager->detach($freshUser);
 
         return $this->render('car/new.html.twig', [
             'car' => $car,
@@ -114,7 +140,13 @@ final class CarController extends AbstractController
 
     private function checkCarOwnership(Car $car): void
     {
-        if ($car->getUser() !== $this->getUser()) {
+        $sessionUser = $this->getUser();
+        if (!$sessionUser instanceof \App\Entity\User) {
+            throw $this->createAccessDeniedException('Vous devez être connecté.');
+        }
+        
+        // Utiliser l'ID pour la comparaison afin d'éviter les problèmes d'entité en session
+        if ($car->getUser()->getId() !== $sessionUser->getId()) {
             throw $this->createAccessDeniedException('Vous ne pouvez pas accéder à ce véhicule.');
         }
     }

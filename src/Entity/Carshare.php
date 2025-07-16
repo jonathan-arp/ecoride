@@ -466,8 +466,9 @@ class Carshare
     /**
      * Complete the trip (all passengers have validated)
      * Also deducts the platform cost from the driver
+     * @return Credit The platform cost credit deducted from driver
      */
-    public function completeTrip(): void
+    public function completeTrip(): Credit
     {
         if ($this->tripStatus !== 'ARRIVED') {
             throw new \LogicException('Trip must be in ARRIVED status before completion');
@@ -483,7 +484,7 @@ class Carshare
         $this->tripStatus = 'COMPLETED';
 
         // Deduct platform cost from driver (2 credits = 2 euros)
-        $this->driver->spendCredits(
+        return $this->driver->spendCredits(
             2.0,
             'Frais de plateforme pour covoiturage terminé',
             $this

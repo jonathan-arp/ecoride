@@ -90,6 +90,50 @@
                     {% endif %}
                 </div>
 
+                <!-- Driver Rating Section -->
+                {% if app.user.canDrive() %}
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <h5>Ma réputation de conducteur</h5>
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                {% if averageRating %}
+                                    <div class="row align-items-center">
+                                        <div class="col-md-6">
+                                            <div class="d-flex align-items-center">
+                                                {% set rating = averageRating %}
+                                                {% for i in 1..5 %}
+                                                    {% if i <= rating %}
+                                                        <i class="fas fa-star text-warning fs-4"></i>
+                                                    {% elseif i - 0.5 <= rating %}
+                                                        <i class="fas fa-star-half-alt text-warning fs-4"></i>
+                                                    {% else %}
+                                                        <i class="far fa-star text-warning fs-4"></i>
+                                                    {% endif %}
+                                                {% endfor %}
+                                                <span class="fs-4 fw-bold ms-2">{{ rating|number_format(1) }}/5</span>
+                                            </div>
+                                            <p class="text-muted mb-0">{{ reviewsCount }} avis publié{{ reviewsCount > 1 ? 's' : '' }}</p>
+                                        </div>
+                                        <div class="col-md-6 text-end">
+                                            <a href="{{ path('app_driver_reviews', {'id': app.user.id}) }}" class="btn btn-outline-primary">
+                                                <i class="fas fa-comments me-2"></i>Voir mes avis
+                                            </a>
+                                        </div>
+                                    </div>
+                                {% else %}
+                                    <div class="text-center text-muted">
+                                        <i class="fas fa-star-o fa-2x mb-2"></i>
+                                        <p class="mb-0">Aucun avis reçu pour le moment</p>
+                                        <small>Vos futurs passagers pourront vous évaluer après chaque trajet</small>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
                 {% if 'ROLE_ADMIN' in app.user.roles or 'ROLE_EMPLOYEE' in app.user.roles %}
                 <div class="mt-2">
                     <a href="{{ path('admin')}}" class="btn btn-outline-success mb-5">

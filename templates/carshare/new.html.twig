@@ -29,7 +29,8 @@
             <div class="card-body">
                     {{ form_start(form, {
                         'method': 'POST',
-                        'action': path('app_carshare_new')
+                        'action': path('app_carshare_new'),
+                        'attr': {'data-turbo': 'false'}
                     }) }}
                     
                     <div class="row">

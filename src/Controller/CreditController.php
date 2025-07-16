@@ -18,14 +18,25 @@ class CreditController extends AbstractController
     #[Route('/account/credits', name: 'app_credits_index')]
     public function index(CreditRepository $creditRepository): Response
     {
-        $user = $this->getUser();
+        $sessionUser = $this->getUser();
 
-        if (!$user instanceof \App\Entity\User) {
+        if (!$sessionUser instanceof \App\Entity\User) {
             return $this->redirectToRoute('app_login');
         }
 
-        $credits = $creditRepository->findByUser($user);
-        $balance = $user->getCreditBalance();
+        // Utiliser une entité fraîche pour éviter la corruption de session
+        $userId = $sessionUser->getId();
+        $freshUser = $this->entityManager->getRepository(\App\Entity\User::class)->find($userId);
+        
+        if (!$freshUser) {
+            return $this->redirectToRoute('app_login');
+        }
+
+        $credits = $creditRepository->findByUser($freshUser);
+        $balance = $freshUser->getCreditBalance();
+
+        // Détacher l'entité pour éviter les conflits lors de navigation rapide
+        $this->entityManager->detach($freshUser);
 
         return $this->render('credit/index.html.twig', [
             'credits' => $credits,
@@ -36,9 +47,9 @@ class CreditController extends AbstractController
     #[Route('/account/credits/purchase', name: 'app_credits_purchase', methods: ['GET', 'POST'])]
     public function purchase(Request $request): Response
     {
-        $user = $this->getUser();
+        $sessionUser = $this->getUser();
 
-        if (!$user instanceof \App\Entity\User) {
+        if (!$sessionUser instanceof \App\Entity\User) {
             return $this->redirectToRoute('app_login');
         }
 
@@ -57,15 +68,23 @@ class CreditController extends AbstractController
                 return $this->render('credit/purchase.html.twig');
             }
 
+            // Utiliser une entité fraîche pour éviter la corruption de session
+            $userId = $sessionUser->getId();
+            $freshUser = $this->entityManager->getRepository(\App\Entity\User::class)->find($userId);
+            
+            if (!$freshUser) {
+                return $this->redirectToRoute('app_login');
+            }
+
             // Simulation d'achat (pas de vraie transaction)
-            $credit = $user->addCredits($amount, 'PURCHASE', sprintf('Achat de %.2f crédits (simulation)', $amount));
+            $credit = $freshUser->addCredits($amount, 'PURCHASE', sprintf('Achat de %.2f crédits (simulation)', $amount));
             $this->entityManager->persist($credit);
             $this->entityManager->flush();
 
             $this->addFlash('success', sprintf(
                 'Achat simulé réussi ! %.2f crédits ajoutés. Nouveau solde: %.2f crédits.',
                 $amount,
-                $user->getCreditBalance()
+                $freshUser->getCreditBalance()
             ));
 
             return $this->redirectToRoute('app_credits_index');

@@ -23,22 +23,22 @@ class TripController extends AbstractController
     #[Route('/carshare/{id}/start-trip', name: 'app_trip_start', methods: ['POST'])]
     public function startTrip(Request $request, Carshare $carshare): Response
     {
-        $user = $this->getUser();
+        $sessionUser = $this->getUser();
 
-        if (!$user instanceof \App\Entity\User || $carshare->getDriver() !== $user) {
+        if (!$sessionUser instanceof \App\Entity\User || $carshare->getDriver()->getId() !== $sessionUser->getId()) {
             $this->addFlash('error', 'Vous ne pouvez démarrer que vos propres covoiturages.');
-            return $this->redirectToRoute('app_carshare');
+            return $this->redirectToRoute('app_carshare_my');
         }
 
         // Vérifier le token CSRF
         if (!$this->isCsrfTokenValid('start-trip'.$carshare->getId(), $request->request->get('_token'))) {
             $this->addFlash('error', 'Token de sécurité invalide.');
-            return $this->redirectToRoute('app_carshare');
+            return $this->redirectToRoute('app_carshare_by_id', ['id' => $carshare->getId()]);
         }
 
         if (!$carshare->canBeStarted()) {
             $this->addFlash('error', 'Ce covoiturage ne peut pas être démarré.');
-            return $this->redirectToRoute('app_carshare');
+            return $this->redirectToRoute('app_carshare_by_id', ['id' => $carshare->getId()]);
         }
 
         $carshare->startTrip();
@@ -47,28 +47,28 @@ class TripController extends AbstractController
 
         $this->addFlash('success', 'Trajet démarré ! Vous pouvez maintenant indiquer votre arrivée à destination.');
 
-        return $this->redirectToRoute('app_carshare');
+        return $this->redirectToRoute('app_carshare_by_id', ['id' => $carshare->getId()]);
     }
 
     #[Route('/carshare/{id}/arrive-trip', name: 'app_trip_arrive', methods: ['POST'])]
     public function arriveTrip(Request $request, Carshare $carshare): Response
     {
-        $user = $this->getUser();
+        $sessionUser = $this->getUser();
 
-        if (!$user instanceof \App\Entity\User || $carshare->getDriver() !== $user) {
+        if (!$sessionUser instanceof \App\Entity\User || $carshare->getDriver()->getId() !== $sessionUser->getId()) {
             $this->addFlash('error', 'Vous ne pouvez marquer l\'arrivée que pour vos propres covoiturages.');
-            return $this->redirectToRoute('app_carshare');
+            return $this->redirectToRoute('app_carshare_my');
         }
 
         // Vérifier le token CSRF
         if (!$this->isCsrfTokenValid('arrive-trip'.$carshare->getId(), $request->request->get('_token'))) {
             $this->addFlash('error', 'Token de sécurité invalide.');
-            return $this->redirectToRoute('app_carshare');
+            return $this->redirectToRoute('app_carshare_by_id', ['id' => $carshare->getId()]);
         }
 
         if ($carshare->getTripStatus() !== 'STARTED') {
             $this->addFlash('error', 'Ce covoiturage doit d\'abord être démarré.');
-            return $this->redirectToRoute('app_carshare');
+            return $this->redirectToRoute('app_carshare_by_id', ['id' => $carshare->getId()]);
         }
 
         $carshare->arriveTrip();
@@ -77,7 +77,7 @@ class TripController extends AbstractController
 
         $this->addFlash('success', 'Arrivée confirmée ! En attente de validation par les passagers.');
 
-        return $this->redirectToRoute('app_carshare');
+        return $this->redirectToRoute('app_carshare_by_id', ['id' => $carshare->getId()]);
     }
 
     #[Route('/reservation/{id}/review-trip', name: 'app_trip_review', methods: ['GET', 'POST'])]
@@ -86,27 +86,39 @@ class TripController extends AbstractController
         Reservation $reservation,
         ReviewRepository $reviewRepository
     ): Response {
-        $user = $this->getUser();
+        $sessionUser = $this->getUser();
 
-        if (!$user instanceof \App\Entity\User || $reservation->getPassenger() !== $user) {
+        if (!$sessionUser instanceof \App\Entity\User || $reservation->getPassenger()->getId() !== $sessionUser->getId()) {
             $this->addFlash('error', 'Vous ne pouvez évaluer que vos propres réservations.');
             return $this->redirectToRoute('app_reservations_index');
         }
 
+        // Utiliser une entité fraîche pour éviter la corruption de session
+        $userId = $sessionUser->getId();
+        $freshUser = $this->entityManager->getRepository(\App\Entity\User::class)->find($userId);
+        
+        if (!$freshUser) {
+            return $this->redirectToRoute('app_login');
+        }
+
         if (!$reservation->canBeValidated()) {
             $this->addFlash('error', 'Ce trajet ne peut pas encore être évalué.');
+            // Détacher l'entité pour éviter les problèmes de navigation rapide
+            $this->entityManager->detach($freshUser);
             return $this->redirectToRoute('app_reservations_index');
         }
 
         // Check if user has already reviewed this carshare
-        if ($reviewRepository->hasPassengerReviewedCarshare($user, $reservation->getCarshare()->getId())) {
+        if ($reviewRepository->hasPassengerReviewedCarshare($freshUser, $reservation->getCarshare()->getId())) {
             $this->addFlash('error', 'Vous avez déjà évalué ce conducteur pour ce trajet.');
+            // Détacher l'entité pour éviter les problèmes de navigation rapide
+            $this->entityManager->detach($freshUser);
             return $this->redirectToRoute('app_reservations_index');
         }
 
         $review = new Review();
         $review->setDriver($reservation->getCarshare()->getDriver());
-        $review->setPassenger($user);
+        $review->setPassenger($freshUser);
         $review->setCarshare($reservation->getCarshare());
         $review->setReservation($reservation);
 
@@ -133,19 +145,25 @@ class TripController extends AbstractController
                 }
 
                 if ($allReservationsValidated) {
-                    // Process all pending transactions
+                    // Process all pending transactions and persist created credits
                     $platformTransactionRepository = $this->entityManager->getRepository(\App\Entity\PlatformTransaction::class);
                     foreach ($carshare->getReservations() as $res) {
                         $pendingTransaction = $platformTransactionRepository->findPendingByReservation($res);
                         if ($pendingTransaction) {
-                            $pendingTransaction->process();
+                            $createdCredits = $pendingTransaction->process();
                             $this->entityManager->persist($pendingTransaction);
+                            
+                            // Persist the credits created during transaction processing
+                            foreach ($createdCredits as $credit) {
+                                $this->entityManager->persist($credit);
+                            }
                         }
                     }
 
-                    // Complete the trip and deduct driver costs
-                    $carshare->completeTrip();
+                    // Complete the trip and persist the driver cost credit
+                    $driverCostCredit = $carshare->completeTrip();
                     $this->entityManager->persist($carshare);
+                    $this->entityManager->persist($driverCostCredit);
 
                     $this->addFlash('success', 'Trajet validé et évalué ! Les crédits ont été transférés.');
                 } else {
@@ -154,8 +172,15 @@ class TripController extends AbstractController
             }
 
             $this->entityManager->flush();
+            
+            // Détacher l'entité pour éviter les problèmes de navigation rapide
+            $this->entityManager->detach($freshUser);
+            
             return $this->redirectToRoute('app_reservations_index');
         }
+
+        // Détacher l'entité pour éviter les problèmes de navigation rapide
+        $this->entityManager->detach($freshUser);
 
         return $this->render('trip/review.html.twig', [
             'reservation' => $reservation,
@@ -171,9 +196,9 @@ class TripController extends AbstractController
         Reservation $reservation, 
         PlatformTransactionRepository $platformTransactionRepository
     ): Response {
-        $user = $this->getUser();
+        $sessionUser = $this->getUser();
 
-        if (!$user instanceof \App\Entity\User || $reservation->getPassenger() !== $user) {
+        if (!$sessionUser instanceof \App\Entity\User || $reservation->getPassenger()->getId() !== $sessionUser->getId()) {
             $this->addFlash('error', 'Vous ne pouvez valider que vos propres réservations.');
             return $this->redirectToRoute('app_reservations_index');
         }

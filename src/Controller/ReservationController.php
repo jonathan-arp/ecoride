@@ -22,15 +22,24 @@ class ReservationController extends AbstractController
     #[Route('/carshare/{id}/reserve', name: 'app_carshare_reserve', methods: ['POST'])]
     public function reserve(Request $request, Carshare $carshare): Response
     {
-        $user = $this->getUser();
+        $sessionUser = $this->getUser();
 
-        if (!$user instanceof \App\Entity\User) {
+        if (!$sessionUser instanceof \App\Entity\User) {
             $this->addFlash('error', 'Vous devez être connecté pour réserver un covoiturage.');
             return $this->redirectToRoute('app_login');
         }
 
+        // Utiliser une entité fraîche pour éviter la corruption de session
+        $userId = $sessionUser->getId();
+        $freshUser = $this->entityManager->getRepository(\App\Entity\User::class)->find($userId);
+        
+        if (!$freshUser) {
+            $this->addFlash('error', 'Erreur utilisateur.');
+            return $this->redirectToRoute('app_login');
+        }
+
         // Vérifications
-        if (!$carshare->canBeReservedBy($user)) {
+        if (!$carshare->canBeReservedBy($freshUser)) {
             $this->addFlash('error', 'Vous ne pouvez pas réserver ce covoiturage.');
             return $this->redirectToRoute('app_carshare_by_id', ['id' => $carshare->getId()]);
         }
@@ -52,10 +61,10 @@ class ReservationController extends AbstractController
         $totalPrice = $carshare->getPrice() * $passengersCount;
 
         // Vérifier si l'utilisateur a assez de crédits
-        if (!$user->canAfford($totalPrice)) {
+        if (!$freshUser->canAfford($totalPrice)) {
             $this->addFlash('error', sprintf(
                 'Crédits insuffisants. Vous avez %.2f crédits, le coût total est %.2f crédits (%d passager%s × %.2f).',
-                $user->getCreditBalance(),
+                $freshUser->getCreditBalance(),
                 $totalPrice,
                 $passengersCount,
                 $passengersCount > 1 ? 's' : '',
@@ -72,14 +81,14 @@ class ReservationController extends AbstractController
 
         // Créer la réservation
         $reservation = new Reservation();
-        $reservation->setPassenger($user);
+        $reservation->setPassenger($freshUser);
         $reservation->setCarshare($carshare);
         $reservation->setPrice($totalPrice);
         $reservation->setPassengersCount($passengersCount);
 
         // Créer une transaction en attente au lieu de transférer immédiatement les crédits
         $platformTransaction = new PlatformTransaction();
-        $platformTransaction->setFromUser($user); // passenger
+        $platformTransaction->setFromUser($freshUser); // passenger
         $platformTransaction->setToUser($carshare->getDriver()); // driver
         $platformTransaction->setAmount($totalPrice);
         $platformTransaction->setReservation($reservation);
@@ -114,17 +123,25 @@ class ReservationController extends AbstractController
             return $this->redirectToRoute('app_login');
         }
 
-        $reservations = $reservationRepository->findByPassenger($user);
+        // Recharge l'utilisateur depuis la base pour éviter les problèmes de session
+        $userId = $user->getId();
+        $freshUser = $this->entityManager->getRepository(\App\Entity\User::class)->find($userId);
 
+        $reservations = $reservationRepository->findByPassenger($freshUser);
+
+        // TODO: Remplacer par un cron job pour éviter les problèmes de navigation rapide
         // Check and mark expired carshares for all reservations
-        $carshares = [];
-        foreach ($reservations as $reservation) {
-            $carshare = $reservation->getCarshare();
-            if (!in_array($carshare, $carshares, true)) {
-                $carshares[] = $carshare;
-            }
-        }
-        $this->checkAndMarkExpiredCarshares($carshares);
+        // $carshares = [];
+        // foreach ($reservations as $reservation) {
+        //     $carshare = $reservation->getCarshare();
+        //     if (!in_array($carshare, $carshares, true)) {
+        //         $carshares[] = $carshare;
+        //     }
+        // }
+        // $this->checkAndMarkExpiredCarshares($carshares);
+
+        // Détacher l'entité pour éviter les conflits lors de navigation rapide
+        $this->entityManager->detach($freshUser);
 
         return $this->render('reservation/index.html.twig', [
             'reservations' => $reservations,
@@ -134,10 +151,10 @@ class ReservationController extends AbstractController
     #[Route('/reservation/{id}/cancel', name: 'app_reservation_cancel', methods: ['POST', 'DELETE'])]
     public function cancel(Request $request, Reservation $reservation, PlatformTransactionRepository $platformTransactionRepository): Response
     {
-        $user = $this->getUser();
+        $sessionUser = $this->getUser();
 
         // Vérifier que l'utilisateur est bien le passager de cette réservation
-        if (!$user instanceof \App\Entity\User || $reservation->getPassenger() !== $user) {
+        if (!$sessionUser instanceof \App\Entity\User || $reservation->getPassenger()->getId() !== $sessionUser->getId()) {
             $this->addFlash('error', 'Vous ne pouvez annuler que vos propres réservations.');
             return $this->redirectToRoute('app_reservations_index');
         }

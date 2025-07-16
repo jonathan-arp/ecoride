@@ -149,7 +149,32 @@
                     <!-- Driver Details -->
                     <div class="text-center mb-3">
                         <h5 class="mb-1">{{ carshare.driver.firstname }} {{ carshare.driver.lastname }}</h5>
-                        <p class="text-muted mb-0">{{ carshare.driver.surname }}</p>
+                        <p class="text-muted mb-2">{{ carshare.driver.surname }}</p>
+                        
+                        <!-- Driver Rating -->
+                        {% if carshare.driver.averageRating %}
+                            <div class="d-flex justify-content-center align-items-center mb-2">
+                                {% set rating = carshare.driver.averageRating %}
+                                {% for i in 1..5 %}
+                                    {% if i <= rating %}
+                                        <i class="fas fa-star text-warning"></i>
+                                    {% elseif i - 0.5 <= rating %}
+                                        <i class="fas fa-star-half-alt text-warning"></i>
+                                    {% else %}
+                                        <i class="far fa-star text-warning"></i>
+                                    {% endif %}
+                                {% endfor %}
+                                <span class="ms-1 fw-bold">{{ rating|number_format(1) }}/5</span>
+                                <span class="text-muted ms-1">({{ carshare.driver.publishedReviewsCount }})</span>
+                            </div>
+                            <a href="{{ path('app_driver_reviews', {'id': carshare.driver.id}) }}" class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-comments me-1"></i>Voir commentaires
+                            </a>
+                        {% else %}
+                            <div class="text-muted mb-2">
+                                <small><i class="fas fa-star me-1"></i>Nouveau conducteur</small>
+                            </div>
+                        {% endif %}
                     </div>
 
                     <!-- Contact Information -->

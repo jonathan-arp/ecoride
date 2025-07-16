@@ -1,0 +1,19 @@
+# Configuration Cron pour EcoRide
+# Ajoutez ces lignes à votre crontab avec : crontab -e
+
+# Nettoyer les sessions expirées toutes les heures
+0 * * * * cd /path/to/ecoride && php bin/console app:session:cleanup >/dev/null 2>&1
+
+# Vérifier les carshares expirés toutes les 15 minutes
+*/15 * * * * cd /path/to/ecoride && php bin/console app:carshare:check-expired >/dev/null 2>&1
+
+# Optionnel : Nettoyer les logs Symfony toutes les semaines (dimanche à 2h)
+0 2 * * 0 cd /path/to/ecoride && find var/log -name "*.log" -mtime +30 -delete >/dev/null 2>&1
+
+# Optionnel : Vider le cache prod une fois par jour (à 3h du matin)
+0 3 * * * cd /path/to/ecoride && php bin/console cache:clear --env=prod >/dev/null 2>&1
+
+# Notes :
+# - Remplacez /path/to/ecoride par le chemin réel vers votre projet
+# - >/dev/null 2>&1 redirige la sortie pour éviter les emails de cron
+# - Adaptez la fréquence selon vos besoins

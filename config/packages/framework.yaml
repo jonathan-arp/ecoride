@@ -1,10 +1,21 @@
 # see https://symfony.com/doc/current/reference/configuration/framework.html
 framework:
   secret: "%env(APP_SECRET)%"
-  #csrf_protection: true
+  csrf_protection: true
 
   # Note that the session will be started ONLY if you read or write from it.
-  session: true
+  session:
+    # Stockage des sessions en base de données pour une meilleure stabilité
+    handler_id: Symfony\Component\HttpFoundation\Session\Storage\Handler\PdoSessionHandler
+    # Increase session lifetime to 8 hours
+    cookie_lifetime: 28800 # Durée du cookie de session (en secondes, ici 8h)
+    # Keep session active for 8 hours of inactivity
+    gc_maxlifetime: 28800 # Durée max avant nettoyage (8h)
+    # Use more secure session settings
+    cookie_secure: auto # Utilise HTTPS si disponible
+    cookie_httponly: true # Empêche l'accès JS au cookie
+    cookie_samesite: lax # Protection contre CSRF
+    name: "ECORIDESESSID" # Nom personnalisé du cookie de session
 
   # Set timezone for Europe/Paris (France)
   default_locale: fr

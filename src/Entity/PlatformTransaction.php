@@ -149,22 +149,25 @@ class PlatformTransaction
 
     /**
      * Process this pending transaction by creating actual credit movements
+     * @return array Array of created Credit entities
      */
-    public function process(): void
+    public function process(): array
     {
         if ($this->status !== 'PENDING') {
             throw new \LogicException('Only pending transactions can be processed');
         }
 
+        $createdCredits = [];
+
         // Debit from passenger
-        $this->fromUser->spendCredits(
+        $createdCredits[] = $this->fromUser->spendCredits(
             $this->amount,
             $this->description,
             $this->reservation->getCarshare()
         );
 
         // Credit to driver
-        $this->toUser->addCredits(
+        $createdCredits[] = $this->toUser->addCredits(
             $this->amount,
             'EARNED',
             $this->description,
@@ -173,6 +176,8 @@ class PlatformTransaction
 
         $this->status = 'PROCESSED';
         $this->processedAt = new \DateTimeImmutable();
+
+        return $createdCredits;
     }
 
     /**

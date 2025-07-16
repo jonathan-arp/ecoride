@@ -14,7 +14,6 @@
         </div>
     </div>
 {% else %}
-<h1 class="text-center mt-5">Mes réservations</h1>
 <div class="container my-5 d-flex flex-wrap justify-content-between">
     
     <div class="col-md-3 col-sm-12 mt-4">
@@ -89,15 +88,12 @@
                                             <div class="alert alert-info mb-3">
                                                 <i class="fas fa-flag me-2"></i>
                                                 <strong>Le conducteur est arrivé à destination !</strong><br>
-                                                <small>Validez le trajet pour finaliser le transfert des crédits.</small>
+                                                <small>Évaluez le trajet pour finaliser le transfert des crédits.</small>
                                             </div>
                                             
-                                            <form method="post" action="{{ path('app_trip_validate', {'id': reservation.id}) }}" class="d-inline">
-                                                <input type="hidden" name="_token" value="{{ csrf_token('validate-trip' ~ reservation.id) }}">
-                                                <button type="submit" class="btn btn-success" onclick="return confirm('Confirmer que le trajet s\'est bien déroulé ?')">
-                                                    <i class="fas fa-check me-2"></i>Trajet réalisé
-                                                </button>
-                                            </form>
+                                            <a href="{{ path('app_trip_review', {'id': reservation.id}) }}" class="btn btn-success">
+                                                <i class="fas fa-star me-2"></i>Évaluer le trajet
+                                            </a>
                                         {% elseif reservation.isPassengerValidated %}
                                             <div class="alert alert-success mb-2">
                                                 <i class="fas fa-check-circle me-2"></i>

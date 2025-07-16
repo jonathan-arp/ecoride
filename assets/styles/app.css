@@ -422,3 +422,80 @@ form[name="carshare"] .input-group .input-group-text {
   align-items: center;
   justify-content: center;
 }
+
+/* Account sidebar menu styling */
+.account-sidebar {
+  background-color: #fafafa;
+  border-radius: 8px;
+  padding: 1.5rem;
+  border: 1px solid #e9ecef;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.account-menu {
+  padding: 0;
+  margin: 0;
+}
+
+.account-menu .nav-item {
+  margin-bottom: 0.25rem;
+}
+
+.account-menu .nav-link {
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  color: #516e11;
+  font-weight: 500;
+  border: 1px solid transparent;
+  display: flex;
+  align-items: center;
+}
+
+.account-menu .nav-link:hover {
+  background-color: #f8f9fa;
+  color: #79a617;
+  border-color: #e9ecef;
+  text-decoration: none;
+}
+
+.account-menu .nav-link.active {
+  background-color: #79a617;
+  color: white;
+  border-color: #79a617;
+  box-shadow: 0 2px 4px rgba(121, 166, 23, 0.2);
+}
+
+.account-menu .nav-link i {
+  width: 20px;
+  text-align: center;
+  opacity: 0.8;
+}
+
+.account-menu .nav-link.active i {
+  opacity: 1;
+}
+
+.account-menu .badge {
+  font-size: 0.7rem;
+  padding: 0.25em 0.5em;
+}
+
+.account-menu small.nav-link {
+  font-size: 0.85rem;
+  padding: 0.5rem 1rem;
+  font-style: italic;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .account-sidebar {
+    margin-bottom: 1rem;
+    padding: 1rem;
+  }
+
+  .account-menu .nav-link {
+    padding: 0.6rem 0.8rem;
+    font-size: 0.9rem;
+  }
+}

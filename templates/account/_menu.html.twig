@@ -1,4 +1,5 @@
-<ul id = "menu" class="nav flex-column">
+<aside class="account-sidebar">
+<ul id="menu" class="nav flex-column account-menu">
 
     <li class="nav-item">
         <a class="nav-link {% if app.request.attributes.get('_route') == 'app_account' %}active{% endif %}" href="{{ path('app_account') }}">Mon compte</a>
@@ -83,3 +84,4 @@
     </li>
 
 </ul>
+</aside>
