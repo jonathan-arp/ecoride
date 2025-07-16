@@ -36,8 +36,16 @@ final class CarController extends AbstractController
     #[Route('/new', name: 'app_car_new')]
     public function new(Request $request): Response
     {
+        $user = $this->getUser();
+        
+        // Vérifier si l'utilisateur a le droit d'ajouter une voiture
+        if (!$user instanceof \App\Entity\User || !$user->canDrive()) {
+            $this->addFlash('error', 'Vous devez être déclaré comme conducteur ou conducteur/passager pour ajouter une voiture.');
+            return $this->redirectToRoute('app_account_profile');
+        }
+        
         $car = new Car();
-        $car->setUser($this->getUser());
+        $car->setUser($user);
         
         $form = $this->createForm(CarType::class, $car);
         $form->handleRequest($request);

@@ -27,6 +27,12 @@
                             </div>
                             
                             <div class="form-group mb-3">
+                                {{ form_label(form.start_detail) }}
+                                {{ form_widget(form.start_detail) }}
+                                {{ form_errors(form.start_detail) }}
+                            </div>
+                            
+                            <div class="form-group mb-3">
                                 {{ form_label(form.start) }}
                                 {{ form_widget(form.start) }}
                                 {{ form_errors(form.start) }}
@@ -44,6 +50,12 @@
                                 {{ form_label(form.end_location) }}
                                 {{ form_widget(form.end_location) }}
                                 {{ form_errors(form.end_location) }}
+                            </div>
+                            
+                            <div class="form-group mb-3">
+                                {{ form_label(form.end_detail) }}
+                                {{ form_widget(form.end_detail) }}
+                                {{ form_errors(form.end_detail) }}
                             </div>
                             
                             <div class="form-group mb-3">
@@ -79,7 +91,7 @@
                     </div>
                     
                     <div class="d-flex justify-content-between mt-4">
-                        <a href="{{ path('app_carshare_index') }}" class="btn btn-outline-secondary">
+                        <a href="{{ path('app_carshare_my') }}" class="btn btn-outline-secondary">
                             <i class="fas fa-arrow-left me-2"></i>Retour
                         </a>
                         <button type="submit" class="btn btn-warning text-white">

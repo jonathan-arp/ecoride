@@ -3,6 +3,8 @@
 namespace App\Form;
 
 use App\Entity\User;
+use App\Entity\Fonction;
+use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
@@ -47,6 +49,17 @@ class RegisterUserType extends AbstractType
                         'maxMessage' => 'Le pseudo ne peut pas dépasser {{ limit }} caractères.',]) ],
 
             'attr' => ['placeholder' => 'Entrez votre pseudo']
+        ])
+        ->add('fonction', EntityType::class, [
+            'class' => Fonction::class,
+            'choice_label' => 'name',
+            'label' => 'Je suis',
+            'placeholder' => 'Choisissez votre rôle',
+            'required' => true,
+            'constraints' => [
+                new NotBlank(["message" => "Veuillez sélectionner votre rôle."])
+            ],
+            'attr' => ['class' => 'form-control']
         ])
         ->add('email', EmailType::class, [
                 'label' => 'Email',
@@ -117,7 +130,17 @@ class RegisterUserType extends AbstractType
                     'placeholder' => 'Sélectionnez votre date de naissance',
                     'class' => 'form-control'
                 ]
-                ]);
+                ])
+        ->add('fonction', EntityType::class, [
+            'class' => Fonction::class,
+            'label' => 'Fonction',
+            'required' => false,
+            'constraints' => [new NotBlank(["message"=>"La fonction ne peut pas être vide."])],
+            'attr' => ['placeholder' => 'Sélectionnez votre fonction'],
+            'choice_label' => function(Fonction $fonction) {
+                return $fonction->getName();
+            },
+        ]);
         
     }
 
