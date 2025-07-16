@@ -365,4 +365,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
         return $this;
     }
+
+    /**
+     * Ensures that the photoFile property is not serialized (which would cause issues)
+     */
+    public function __sleep(): array
+    {
+        return array_diff(array_keys(get_object_vars($this)), ['photoFile']);
+    }
 }

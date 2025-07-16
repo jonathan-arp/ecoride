@@ -13,6 +13,13 @@
     <li class="nav-item">
         <a class="nav-link {% if app.request.attributes.get('_route') starts with 'app_driver' %}active{% endif %}" href="{{ path('app_driver_parameters') }}">Mes paramètres conducteur</a>
     </li>
+    {% if app.user.cars|length > 0 %}
+    <li class="nav-item">
+        <a class="nav-link {% if app.request.attributes.get('_route') == 'app_driver_photo' %}active{% endif %}" href="{{ path('app_driver_photo') }}">
+            <i class="fas fa-camera me-2"></i>Photo de conducteur
+        </a>
+    </li>
+    {% endif %}
 
     {% if is_granted('ROLE_ADMIN') or is_granted('ROLE_EMPLOYEE') %}
 

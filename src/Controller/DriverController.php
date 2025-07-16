@@ -3,7 +3,9 @@
 namespace App\Controller;
 
 use App\Entity\Parameter;
+use App\Entity\User;
 use App\Form\ParameterType;
+use App\Form\UserPhotoType;
 use App\Repository\ParameterRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -82,6 +84,47 @@ class DriverController extends AbstractController
         return $this->render('account/driver/parameter_new.html.twig', [
             'parameter' => $parameter,
             'form' => $form,
+        ]);
+    }
+
+    #[Route('/photo', name: 'app_driver_photo', methods: ['GET', 'POST'])]
+    public function uploadPhoto(Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $user = $this->getUser();
+        if (!$user || !$user instanceof \App\Entity\User) {
+            $this->addFlash('danger', 'Vous devez être connecté.');
+            return $this->redirectToRoute('app_login');
+        }
+
+        // Check if user has at least one car
+        if ($user->getCars()->isEmpty()) {
+            $this->addFlash('warning', 'Vous devez d\'abord enregistrer un véhicule pour accéder à cette fonctionnalité.');
+            return $this->redirectToRoute('app_car_new');
+        }
+
+        $form = $this->createForm(UserPhotoType::class, $user);
+        
+        if ($request->isMethod('POST')) {
+            $form->handleRequest($request);
+            
+            if ($form->isSubmitted() && $form->isValid()) {
+                try {
+                    $entityManager->flush();
+                    $this->addFlash('success', 'Votre photo de profil a été mise à jour avec succès.');
+                    
+                    // Redirect to avoid Turbo form submission error and clear any potential serialization issues
+                    return $this->redirectToRoute('app_driver_photo');
+                } catch (\Exception $e) {
+                    $this->addFlash('error', 'Une erreur est survenue lors de l\'upload : ' . $e->getMessage());
+                }
+            } else {
+                $this->addFlash('error', 'Veuillez corriger les erreurs dans le formulaire.');
+            }
+        }
+
+        return $this->render('account/driver/photo.html.twig', [
+            'form' => $form->createView(),
+            'user' => $user
         ]);
     }
 }

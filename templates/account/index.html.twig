@@ -38,6 +38,35 @@
                         </div>
                     </div>
                     
+                    <!-- Driver Photo Section -->
+                    {% if app.user.cars|length > 0 %}
+                    <div class="col-md-6">
+                        <h5>Photo de conducteur</h5>
+                        <div class="text-center mb-3">
+                            {% if app.user.photo %}
+                                <img src="{{ asset('uploads/user_photos/' ~ app.user.photo) }}" 
+                                     alt="Photo de {{ app.user.firstname }}" 
+                                     class="rounded-circle border border-2 border-primary"
+                                     style="width: 80px; height: 80px; object-fit: cover;">
+                                <p class="text-success small mt-1">
+                                    <i class="fas fa-check-circle me-1"></i>Photo ajoutée
+                                </p>
+                            {% else %}
+                                <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center border border-2 border-secondary"
+                                     style="width: 80px; height: 80px;">
+                                    <i class="fas fa-user text-secondary fs-4"></i>
+                                </div>
+                                <p class="text-warning small mt-1">
+                                    <i class="fas fa-exclamation-triangle me-1"></i>Aucune photo
+                                </p>
+                            {% endif %}
+                        </div>
+                        <a href="{{ path('app_driver_photo') }}" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-camera me-1"></i>
+                            {{ app.user.photo ? 'Modifier' : 'Ajouter' }} ma photo
+                        </a>
+                    </div>
+                    {% endif %}
                 </div>
 
                 {% if 'ROLE_ADMIN' in app.user.roles or 'ROLE_EMPLOYEE' in app.user.roles %}

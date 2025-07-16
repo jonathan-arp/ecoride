@@ -1,0 +1,377 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ carshare.startLocation }} → {{ carshare.endLocation }}{% endblock %}
+
+{% block body %}
+<div class="container my-5">
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ path('app_home') }}">Accueil</a></li>
+                    <li class="breadcrumb-item"><a href="{{ path('app_carshare') }}">Covoiturages</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Détails du trajet</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Main Carshare Information -->
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow-lg border-0 mb-4">
+                <div class="card-header bg-gradient-success text-white">
+                    <h1 class="card-title mb-0 h3">
+                        <i class="fas fa-route me-3"></i>
+                        {{ carshare.startLocation }} → {{ carshare.endLocation }}
+                    </h1>
+                </div>
+                
+                <div class="card-body p-4">
+                    <!-- Trip Status Badge -->
+                    <div class="mb-3">
+                        <span class="badge fs-6 bg-{{ (carshare.status == 'active' or carshare.status == 'available') ? 'success' : (carshare.status == 'completed' ? 'primary' : (carshare.status == 'full' ? 'warning' : 'secondary')) }}">
+                            <i class="fas fa-{{ (carshare.status == 'active' or carshare.status == 'available') ? 'check-circle' : (carshare.status == 'completed' ? 'flag-checkered' : (carshare.status == 'full' ? 'users' : 'pause-circle')) }} me-2"></i>
+                            {{ carshare.status == 'available' ? 'Disponible' : carshare.status|title }}
+                        </span>
+                    </div>
+
+                    <!-- Trip Details Grid -->
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="icon-wrapper bg-success bg-opacity-10 rounded-circle p-3 me-3">
+                                    <i class="fas fa-play-circle text-success fs-4"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-0 text-muted">Départ</h6>
+                                    <div class="fw-bold fs-5">{{ carshare.start|date('d/m/Y') }}</div>
+                                    <small class="text-success">{{ carshare.start|date('H:i') }}</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="icon-wrapper bg-danger bg-opacity-10 rounded-circle p-3 me-3">
+                                    <i class="fas fa-stop-circle text-danger fs-4"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-0 text-muted">Arrivée</h6>
+                                    <div class="fw-bold fs-5">{{ carshare.end|date('d/m/Y') }}</div>
+                                    <small class="text-danger">{{ carshare.end|date('H:i') }}</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="icon-wrapper bg-warning bg-opacity-10 rounded-circle p-3 me-3">
+                                    <i class="fas fa-users text-warning fs-4"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-0 text-muted">Places disponibles</h6>
+                                    <div class="fw-bold fs-5">{{ carshare.place }}</div>
+                                    <small class="text-muted">passager{{ carshare.place > 1 ? 's' : '' }}</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="icon-wrapper bg-success bg-opacity-10 rounded-circle p-3 me-3">
+                                    <i class="fas fa-euro-sign text-success fs-4"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-0 text-muted">Prix</h6>
+                                    <div class="fw-bold fs-3 text-success">{{ carshare.price }}€</div>
+                                    <small class="text-muted">par personne</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Driver Information Sidebar -->
+        <div class="col-lg-4">
+            <div class="card shadow border-0 mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-user-tie me-2"></i>Conducteur
+                    </h5>
+                </div>
+                
+                <div class="card-body p-4">
+                    <!-- Driver Photo -->
+                    <div class="text-center mb-3">
+                        {% if carshare.driver.photo %}
+                            <img src="{{ asset('uploads/user_photos/' ~ carshare.driver.photo) }}" 
+                                 alt="Photo de {{ carshare.driver.firstname }}" 
+                                 class="rounded-circle border border-3 border-primary"
+                                 style="width: 80px; height: 80px; object-fit: cover;">
+                        {% else %}
+                            <div class="bg-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center"
+                                 style="width: 80px; height: 80px;">
+                                <i class="fas fa-user text-primary fs-2"></i>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Driver Details -->
+                    <div class="text-center mb-3">
+                        <h5 class="mb-1">{{ carshare.driver.firstname }} {{ carshare.driver.lastname }}</h5>
+                        <p class="text-muted mb-0">{{ carshare.driver.surname }}</p>
+                    </div>
+
+                    <!-- Contact Information -->
+                    <div class="mb-3">
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="fas fa-envelope text-primary me-2"></i>
+                            <small class="text-muted">{{ carshare.driver.email }}</small>
+                        </div>
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="fas fa-phone text-primary me-2"></i>
+                            <small class="text-muted">{{ carshare.driver.phone }}</small>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-map-marker-alt text-primary me-2"></i>
+                            <small class="text-muted">{{ carshare.driver.address }}</small>
+                        </div>
+                    </div>
+
+                    <!-- Driver Parameters/Preferences -->
+                    <div class="mb-3">
+                        <h6 class="text-primary mb-2">
+                            <i class="fas fa-star me-1"></i>Préférences
+                            <small class="text-muted">({{ carshare.driver.parameters|length }} paramètre{{ carshare.driver.parameters|length > 1 ? 's' : '' }})</small>
+                        </h6>
+                        {% if carshare.driver.parameters|length > 0 %}
+                            <div class="d-flex flex-wrap gap-1">
+                                {% for parameter in carshare.driver.parameters %}
+                                    <span class="badge bg-light text-dark border">
+                                        {% if parameter.icon %}
+                                            <i class="{{ parameter.icon }} me-1"></i>
+                                        {% endif %}
+                                        {{ parameter.value }}
+                                    </span>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <p class="text-muted mb-0">
+                                <i class="fas fa-info-circle me-1"></i>
+                                Aucune préférence renseignée
+                            </p>
+                        {% endif %}
+                    </div>
+
+                    <!-- Action Buttons -->
+                    {% if app.user and app.user != carshare.driver %}
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-success" onclick="contactDriver()">
+                                <i class="fas fa-comment me-2"></i>Contacter
+                            </button>
+                            {% if (carshare.status == 'active' or carshare.status == 'available') and carshare.place > 0 %}
+                                <button class="btn btn-outline-primary" onclick="reserveSeat()">
+                                    <i class="fas fa-hand-paper me-2"></i>Réserver
+                                </button>
+                            {% else %}
+                                <!-- Debug info (remove in production) -->
+                                <small class="text-muted">
+                                    Status: {{ carshare.status }}, Places: {{ carshare.place }}
+                                    {% if carshare.status != 'active' and carshare.status != 'available' %}
+                                        - Status non valide pour réservation
+                                    {% endif %}
+                                    {% if carshare.place <= 0 %}
+                                        - Aucune place disponible
+                                    {% endif %}
+                                </small>
+                            {% endif %}
+                        </div>
+                    {% elseif not app.user %}
+                        <div class="d-grid">
+                            <a href="{{ path('app_login') }}" class="btn btn-primary">
+                                <i class="fas fa-sign-in-alt me-2"></i>Connectez-vous pour réserver
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Vehicle Information -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow border-0">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-car me-2"></i>Véhicule
+                    </h5>
+                </div>
+                
+                <div class="card-body p-4">
+                    <div class="row g-4">
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <div class="bg-secondary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-2"
+                                     style="width: 60px; height: 60px;">
+                                    <i class="fas fa-car text-secondary fs-3"></i>
+                                </div>
+                                <h6 class="mb-0">{{ carshare.car.brand.content }}</h6>
+                                <small class="text-muted">Marque</small>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <div class="bg-info bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-2"
+                                     style="width: 60px; height: 60px;">
+                                    <i class="fas fa-cogs text-info fs-3"></i>
+                                </div>
+                                <h6 class="mb-0">{{ carshare.car.model }}</h6>
+                                <small class="text-muted">Modèle</small>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <div class="bg-warning bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-2"
+                                     style="width: 60px; height: 60px;">
+                                    <i class="fas fa-palette text-warning fs-3"></i>
+                                </div>
+                                <h6 class="mb-0">{{ carshare.car.color|title }}</h6>
+                                <small class="text-muted">Couleur</small>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <div class="bg-success bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-2"
+                                     style="width: 60px; height: 60px;">
+                                    {% set energyIcon = 'fa-gas-pump' %}
+                                    {% if carshare.car.energyType %}
+                                        {% if carshare.car.energyType.value == 'ELECTRICITE' %}
+                                            {% set energyIcon = 'fa-bolt' %}
+                                        {% elseif carshare.car.energyType.value == 'HYBRID' %}
+                                            {% set energyIcon = 'fa-leaf' %}
+                                        {% elseif carshare.car.energyType.value == 'BIOCARBURANT' %}
+                                            {% set energyIcon = 'fa-seedling' %}
+                                        {% endif %}
+                                    {% endif %}
+                                    <i class="fas {{ energyIcon }} text-success fs-3"></i>
+                                </div>
+                                <h6 class="mb-0">
+                                    {% if carshare.car.energyType %}
+                                        {% if carshare.car.energyType.value == 'ELECTRICITE' %}
+                                            Électrique
+                                        {% elseif carshare.car.energyType.value == 'ESSENCE' %}
+                                            Essence
+                                        {% elseif carshare.car.energyType.value == 'GAZOIL' %}
+                                            Gazole
+                                        {% elseif carshare.car.energyType.value == 'HYBRID' %}
+                                            Hybride
+                                        {% elseif carshare.car.energyType.value == 'BIOCARBURANT' %}
+                                            Biocarburant
+                                        {% else %}
+                                            {{ carshare.car.energyType.value }}
+                                        {% endif %}
+                                    {% else %}
+                                        Non spécifié
+                                    {% endif %}
+                                </h6>
+                                <small class="text-muted">Énergie</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Additional Vehicle Info -->
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-id-card text-muted me-2"></i>
+                                <span class="text-muted">Immatriculation: </span>
+                                <span class="fw-bold ms-1">{{ carshare.car.matriculation }}</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-calendar text-muted me-2"></i>
+                                <span class="text-muted">Première immatriculation: </span>
+                                <span class="fw-bold ms-1">{{ carshare.car.dateFirstMatricule|date('d/m/Y') }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Buttons Row -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <a href="{{ path('app_carshare') }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Retour aux covoiturages
+                </a>
+                
+                {% if app.user and app.user == carshare.driver %}
+                    <div class="btn-group">
+                        <a href="#" class="btn btn-warning">
+                            <i class="fas fa-edit me-2"></i>Modifier
+                        </a>
+                        <button class="btn btn-danger" onclick="confirmDelete()">
+                            <i class="fas fa-trash me-2"></i>Supprimer
+                        </button>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function contactDriver() {
+    alert('Fonctionnalité de contact en cours de développement');
+}
+
+function reserveSeat() {
+    alert('Fonctionnalité de réservation en cours de développement');
+}
+
+function confirmDelete() {
+    if (confirm('Êtes-vous sûr de vouloir supprimer ce covoiturage ?')) {
+        // Add delete functionality here
+        alert('Fonctionnalité de suppression en cours de développement');
+    }
+}
+</script>
+
+<style>
+.bg-gradient-success {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+}
+
+.icon-wrapper {
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.card {
+    transition: transform 0.2s ease-in-out;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+}
+
+.badge {
+    font-size: 0.85em;
+}
+</style>
+{% endblock %}

@@ -2,6 +2,18 @@
 
 {% block body %}
 <h1 class="text-center mt-3">Inscription</h1>
+
+{% for label, messages in app.flashes %}
+    <div class="container mt-3">
+        <div class="alert alert-{{ label == 'error' ? 'danger' : (label == 'success' ? 'success' : 'info') }} alert-dismissible fade show" role="alert">
+            {% for message in messages %}
+                {{ message }}
+            {% endfor %}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    </div>
+{% endfor %}
+
 <div class="container my-5">
     <div class="row justify-content-center">
         <div class="col-md-10">
