@@ -36,6 +36,27 @@
                         <div class="mb-2">
                             <span class="data-label">Email:</span> {{ app.user.email }}
                         </div>
+                        <div class="mb-2">
+                            <span class="data-label">Rôle:</span> 
+                            {% if app.user.fonction %}
+                                <span class="badge bg-success">{{ app.user.fonction.name }}</span>
+                                {% if app.user.canDrive() and app.user.canBePassenger() %}
+                                    <small class="text-muted d-block">Peut être conducteur et passager</small>
+                                {% elseif app.user.canDrive() %}
+                                    <small class="text-muted d-block">Peut être conducteur uniquement</small>
+                                {% elseif app.user.canBePassenger() %}
+                                    <small class="text-muted d-block">Peut être passager uniquement</small>
+                                {% endif %}
+                            {% else %}
+                                <span class="badge bg-warning">Non défini</span>
+                                <div class="mt-1">
+                                    <a href="{{ path('app_account_profile') }}" class="btn btn-outline-warning btn-sm">
+                                        <i class="fas fa-exclamation-triangle me-1"></i>
+                                        Définir mon rôle
+                                    </a>
+                                </div>
+                            {% endif %}
+                        </div>
                     </div>
                     
                     <!-- Driver Photo Section -->

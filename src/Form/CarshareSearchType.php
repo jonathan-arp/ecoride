@@ -6,7 +6,6 @@ use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
-use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -49,12 +48,6 @@ class CarshareSearchType extends AbstractType
                 'attr' => [
                     'class' => 'form-control',
                     'min' => (new \DateTime())->format('Y-m-d')
-                ]
-            ])
-            ->add('submit', SubmitType::class, [
-                'label' => 'Rechercher',
-                'attr' => [
-                    'class' => 'btn btn-success btn-lg w-100'
                 ]
             ])
         ;

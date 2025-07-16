@@ -25,6 +25,12 @@ class Carshare
     #[ORM\Column(length: 255)]
     private ?string $end_location = null;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $start_detail = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $end_detail = null;
+
     #[ORM\Column(length: 255)]
     private ?string $status = null;
 
@@ -153,5 +159,64 @@ class Carshare
         $this->car = $car;
 
         return $this;
+    }
+
+    public function getStartDetail(): ?string
+    {
+        return $this->start_detail;
+    }
+
+    public function setStartDetail(?string $start_detail): static
+    {
+        $this->start_detail = $start_detail;
+
+        return $this;
+    }
+
+    public function getEndDetail(): ?string
+    {
+        return $this->end_detail;
+    }
+
+    public function setEndDetail(?string $end_detail): static
+    {
+        $this->end_detail = $end_detail;
+
+        return $this;
+    }
+
+    /**
+     * Update the old location fields based on new city and detail fields
+     */
+    public function updateLocationFields(): void
+    {
+        // Cette méthode n'est plus nécessaire car on utilise start_location directement
+        // Mais on la garde pour la compatibilité si besoin
+    }
+
+    // Méthodes helper pour l'affichage des localisations
+    public function getFormattedStartLocation(): string
+    {
+        $location = $this->getStartLocation();
+        if ($this->getStartDetail()) {
+            $location .= ', ' . $this->getStartDetail();
+        }
+        
+        return $location;
+    }
+    
+    public function getFormattedEndLocation(): string
+    {
+        $location = $this->getEndLocation();
+        if ($this->getEndDetail()) {
+            $location .= ', ' . $this->getEndDetail();
+        }
+        
+        return $location;
+    }
+    
+    public function getFormattedRoute(): string
+    {
+        return $this->getFormattedStartLocation() . ' → ' . $this->getFormattedEndLocation();
     }
 }

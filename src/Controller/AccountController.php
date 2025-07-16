@@ -8,6 +8,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use App\Form\PasswordUserType;
+use App\Form\AccountType;
 use Doctrine\ORM\EntityManagerInterface;
 
 
@@ -45,5 +46,29 @@ final class AccountController extends AbstractController
             return $this->redirectToRoute('app_account');
         }
         return $this->render('account/password.html.twig', ['modifyPwdForm' => $form->createView()]);
+    }
+
+    #[Route('/compte/profil', name: 'app_account_profile')]
+    public function profile(Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $user = $this->getUser();
+        if (!$user || !$user instanceof \App\Entity\User) {
+            $this->addFlash('danger', 'Vous devez être connecté.');
+            return $this->redirectToRoute('app_login');
+        }
+
+        $form = $this->createForm(AccountType::class, $user);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $entityManager->flush();
+            $this->addFlash('success', 'Votre profil a été modifié avec succès');
+            return $this->redirectToRoute('app_account');
+        }
+
+        return $this->render('account/profile.html.twig', [
+            'profileForm' => $form->createView(),
+            'user' => $user
+        ]);
     }
 }

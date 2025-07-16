@@ -7,8 +7,6 @@ const CarsharesFilter = (props) => {
     props.carshares || []
   );
   const [filter, setFilter] = useState("");
-  const [cityFilter, setCityFilter] = useState("");
-  const [destinationFilter, setDestinationFilter] = useState("");
   const [energyFilter, setEnergyFilter] = useState("");
 
   // Component starts with carshares available, no loading needed
@@ -23,26 +21,10 @@ const CarsharesFilter = (props) => {
   // Apply filter when filter selection changes
   useEffect(() => {
     applyFilter();
-  }, [filter, cityFilter, destinationFilter, energyFilter, carshares]);
+  }, [filter, energyFilter, carshares]);
 
   const applyFilter = () => {
     let sortedCarshares = [...carshares];
-
-    // Apply city filter first
-    if (cityFilter) {
-      sortedCarshares = sortedCarshares.filter((carshare) =>
-        carshare.startLocation.toLowerCase().includes(cityFilter.toLowerCase())
-      );
-    }
-
-    // Apply destination filter
-    if (destinationFilter) {
-      sortedCarshares = sortedCarshares.filter((carshare) =>
-        carshare.endLocation
-          .toLowerCase()
-          .includes(destinationFilter.toLowerCase())
-      );
-    }
 
     // Apply energy filter
     if (energyFilter) {
@@ -63,16 +45,6 @@ const CarsharesFilter = (props) => {
       case "price-desc":
         sortedCarshares.sort(
           (a, b) => parseFloat(b.price) - parseFloat(a.price)
-        );
-        break;
-      case "start-location":
-        sortedCarshares.sort((a, b) =>
-          a.startLocation.localeCompare(b.startLocation)
-        );
-        break;
-      case "end-location":
-        sortedCarshares.sort((a, b) =>
-          a.endLocation.localeCompare(b.endLocation)
         );
         break;
       case "status":
@@ -100,28 +72,8 @@ const CarsharesFilter = (props) => {
     setFilter(event.target.value);
   };
 
-  const handleCityFilterChange = (event) => {
-    setCityFilter(event.target.value);
-  };
-
-  const handleDestinationFilterChange = (event) => {
-    setDestinationFilter(event.target.value);
-  };
-
   const handleEnergyFilterChange = (event) => {
     setEnergyFilter(event.target.value);
-  };
-
-  // Get unique cities from carshares
-  const getUniqueCities = () => {
-    const cities = carshares.map((carshare) => carshare.startLocation);
-    return [...new Set(cities)].sort();
-  };
-
-  // Get unique destination cities from carshares
-  const getUniqueDestinations = () => {
-    const destinations = carshares.map((carshare) => carshare.endLocation);
-    return [...new Set(destinations)].sort();
   };
 
   // Get unique energy types from carshares
@@ -141,10 +93,10 @@ const CarsharesFilter = (props) => {
       )}
       {!loading && (
         <>
-          <h3 className="text-center w-100 mt-4">Filtres</h3>
+          <h3 className="text-center w-100 mt-4">Filtres et tri</h3>
           <div className="container-fluid py-4">
             <div className="row justify-content-center">
-              <div className="col-md-3 col-sm-6 mb-3">
+              <div className="col-md-4 col-sm-6 mb-3">
                 <fieldset className="form-group">
                   <label htmlFor="filter" className="form-label">
                     Trier par
@@ -158,8 +110,6 @@ const CarsharesFilter = (props) => {
                     <option value="">Sélectionner</option>
                     <option value="price-asc">Prix croissant</option>
                     <option value="price-desc">Prix décroissant</option>
-                    <option value="start-location">Lieu de départ</option>
-                    <option value="end-location">Lieu d'arrivée</option>
                     <option value="status">Statut</option>
                     <option value="start-date-asc">
                       Date de départ (plus ancien)
@@ -177,55 +127,12 @@ const CarsharesFilter = (props) => {
                 </fieldset>
               </div>
 
-              <div className="col-md-3 col-sm-6 mb-3">
-                <fieldset className="form-group">
-                  <label htmlFor="cityFilter" className="form-label">
-                    Ville de départ
-                  </label>
-                  <select
-                    id="cityFilter"
-                    value={cityFilter}
-                    onChange={handleCityFilterChange}
-                    className="form-control"
-                  >
-                    <option value="">Toutes les villes</option>
-                    {getUniqueCities().map((city) => (
-                      <option key={city} value={city}>
-                        {city}
-                      </option>
-                    ))}
-                  </select>
-                </fieldset>
-              </div>
-
-              <div className="col-md-3 col-sm-6 mb-3">
-                <fieldset className="form-group">
-                  <label htmlFor="destinationFilter" className="form-label">
-                    Ville d'arrivée
-                  </label>
-                  <select
-                    id="destinationFilter"
-                    value={destinationFilter}
-                    onChange={handleDestinationFilterChange}
-                    className="form-control"
-                  >
-                    <option value="">Toutes les villes</option>
-                    {getUniqueDestinations().map((destination) => (
-                      <option key={destination} value={destination}>
-                        {destination}
-                      </option>
-                    ))}
-                  </select>
-                </fieldset>
-              </div>
-
-              <div className="col-md-3 col-sm-6 mb-3">
+              <div className="col-md-4 col-sm-6 mb-3">
                 <fieldset className="form-group">
                   <label
                     htmlFor="energyFilter"
                     className="form-label text-success"
                   >
-                    <i className="fas fa-leaf me-2 text-success"></i>
                     Type d'énergie
                   </label>
                   <select
@@ -276,8 +183,19 @@ const CarsharesFilter = (props) => {
             ) : (
               filteredCarshares.map((carshare) => (
                 <div key={carshare.id} className="card mb-3">
-                  <h3 className="card-head">
-                    {carshare.startLocation} → {carshare.endLocation}
+                  <h3 className="card-head d-flex justify-content-between align-items-center">
+                    <span>{carshare.formattedRoute}</span>
+                    {(carshare.car.energyType === "ELECTRICITE" ||
+                      carshare.car.energyType === "HYBRID") && (
+                      <i
+                        className="fas fa-leaf text-success"
+                        title={
+                          carshare.car.energyType === "ELECTRICITE"
+                            ? "Véhicule électrique"
+                            : "Véhicule hybride"
+                        }
+                      ></i>
+                    )}
                   </h3>
                   <div className="card-body">
                     <div className="carshare-info">

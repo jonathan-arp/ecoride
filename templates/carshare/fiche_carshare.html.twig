@@ -1,6 +1,6 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}{{ carshare.startLocation }} → {{ carshare.endLocation }}{% endblock %}
+{% block title %}{{ carshare.formattedRoute }}{% endblock %}
 
 {% block body %}
 <div class="container my-5">
@@ -10,7 +10,7 @@
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item"><a href="{{ path('app_home') }}">Accueil</a></li>
-                    <li class="breadcrumb-item"><a href="{{ path('app_carshare') }}">Covoiturages</a></li>
+                    <li class="breadcrumb-item"><a href="{{ path('app_carshare_search') }}">Rechercher</a></li>
                     <li class="breadcrumb-item active" aria-current="page">Détails du trajet</li>
                 </ol>
             </nav>
@@ -24,7 +24,7 @@
                 <div class="card-header bg-gradient-success text-white">
                     <h1 class="card-title mb-0 h3">
                         <i class="fas fa-route me-3"></i>
-                        {{ carshare.startLocation }} → {{ carshare.endLocation }}
+                        {{ carshare.formattedRoute }}
                     </h1>
                 </div>
                 
@@ -313,16 +313,16 @@
     <div class="row mt-4">
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center">
-                <a href="{{ path('app_carshare') }}" class="btn btn-outline-secondary">
+                <a href="{{ path('app_carshare_search') }}" class="btn btn-outline-secondary">
                     <i class="fas fa-arrow-left me-2"></i>Retour aux covoiturages
                 </a>
                 
                 {% if app.user and app.user == carshare.driver %}
                     <div class="btn-group">
-                        <a href="#" class="btn btn-warning">
+                        <a href="{{ path('app_carshare_edit', {'id': carshare.id}) }}" class="btn btn-warning">
                             <i class="fas fa-edit me-2"></i>Modifier
                         </a>
-                        <button class="btn btn-danger" onclick="confirmDelete()">
+                        <button class="btn btn-danger" onclick="confirmDelete({{ carshare.id }})">
                             <i class="fas fa-trash me-2"></i>Supprimer
                         </button>
                     </div>
@@ -341,10 +341,29 @@ function reserveSeat() {
     alert('Fonctionnalité de réservation en cours de développement');
 }
 
-function confirmDelete() {
-    if (confirm('Êtes-vous sûr de vouloir supprimer ce covoiturage ?')) {
-        // Add delete functionality here
-        alert('Fonctionnalité de suppression en cours de développement');
+function confirmDelete(carshareId) {
+    if (confirm('Êtes-vous sûr de vouloir supprimer ce covoiturage ? Cette action est irréversible.')) {
+        // Créer un formulaire pour la suppression avec token CSRF
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `/carshare/${carshareId}/delete`;
+        
+        // Ajouter le token CSRF
+        const csrfToken = document.createElement('input');
+        csrfToken.type = 'hidden';
+        csrfToken.name = '_token';
+        csrfToken.value = '{{ csrf_token('delete' ~ carshare.id) }}';
+        form.appendChild(csrfToken);
+        
+        // Ajouter la méthode DELETE
+        const methodField = document.createElement('input');
+        methodField.type = 'hidden';
+        methodField.name = '_method';
+        methodField.value = 'DELETE';
+        form.appendChild(methodField);
+        
+        document.body.appendChild(form);
+        form.submit();
     }
 }
 </script>

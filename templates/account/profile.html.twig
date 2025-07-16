@@ -1,0 +1,113 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mon Profil - EcoRide{% endblock %}
+
+{% block body %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-success text-white">
+                    <h2 class="mb-0">
+                        <i class="fas fa-user me-2"></i>
+                        Mon Profil
+                    </h2>
+                </div>
+                <div class="card-body">
+                    {% for label, messages in app.flashes %}
+                        <div class="alert alert-{{ label == 'error' ? 'danger' : (label == 'success' ? 'success' : 'info') }} alert-dismissible fade show" role="alert">
+                            {% for message in messages %}
+                                {{ message }}
+                            {% endfor %}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+
+                    {{ form_start(profileForm) }}
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form_label(profileForm.lastname) }}
+                            {{ form_widget(profileForm.lastname) }}
+                            {{ form_errors(profileForm.lastname) }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form_label(profileForm.firstname) }}
+                            {{ form_widget(profileForm.firstname) }}
+                            {{ form_errors(profileForm.firstname) }}
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form_label(profileForm.surname) }}
+                            {{ form_widget(profileForm.surname) }}
+                            {{ form_errors(profileForm.surname) }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form_label(profileForm.email) }}
+                            {{ form_widget(profileForm.email) }}
+                            {{ form_errors(profileForm.email) }}
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form_label(profileForm.phone) }}
+                            {{ form_widget(profileForm.phone) }}
+                            {{ form_errors(profileForm.phone) }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form_label(profileForm.birthday) }}
+                            {{ form_widget(profileForm.birthday) }}
+                            {{ form_errors(profileForm.birthday) }}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form_label(profileForm.address) }}
+                        {{ form_widget(profileForm.address) }}
+                        {{ form_errors(profileForm.address) }}
+                    </div>
+
+                    <div class="mb-4">
+                        {{ form_label(profileForm.fonction) }}
+                        {{ form_widget(profileForm.fonction) }}
+                        {{ form_errors(profileForm.fonction) }}
+                        {{ form_help(profileForm.fonction) }}
+                        
+                        {% if user.fonction %}
+                            <div class="mt-2">
+                                <small class="text-muted">
+                                    <strong>Permissions actuelles :</strong>
+                                    {% if user.canDrive() and user.canBePassenger() %}
+                                        <span class="badge bg-success">Conducteur</span>
+                                        <span class="badge bg-info">Passager</span>
+                                    {% elseif user.canDrive() %}
+                                        <span class="badge bg-success">Conducteur uniquement</span>
+                                    {% elseif user.canBePassenger() %}
+                                        <span class="badge bg-info">Passager uniquement</span>
+                                    {% endif %}
+                                </small>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ path('app_account') }}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-1"></i>
+                            Retour
+                        </a>
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-save me-1"></i>
+                            Enregistrer les modifications
+                        </button>
+                    </div>
+
+                    {{ form_end(profileForm) }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

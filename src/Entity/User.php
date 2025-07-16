@@ -86,6 +86,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(targetEntity: Carshare::class, mappedBy: 'driver', orphanRemoval: true)]
     private Collection $carshares;
 
+    #[ORM\ManyToOne(targetEntity: Fonction::class, inversedBy: 'users')]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?Fonction $fonction = null;
+
     public function __construct()
     {
         $this->cars = new ArrayCollection();
@@ -372,5 +376,33 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function __sleep(): array
     {
         return array_diff(array_keys(get_object_vars($this)), ['photoFile']);
+    }
+
+    public function getFonction(): ?Fonction
+    {
+        return $this->fonction;
+    }
+
+    public function setFonction(?Fonction $fonction): static
+    {
+        $this->fonction = $fonction;
+
+        return $this;
+    }
+
+    /**
+     * Check if user can drive (has conductor or conductor/passenger role)
+     */
+    public function canDrive(): bool
+    {
+        return $this->fonction && $this->fonction->canDrive();
+    }
+
+    /**
+     * Check if user can be passenger
+     */
+    public function canBePassenger(): bool
+    {
+        return $this->fonction && $this->fonction->canBePassenger();
     }
 }

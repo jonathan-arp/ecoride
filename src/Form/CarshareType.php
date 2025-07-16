@@ -57,7 +57,15 @@ class CarshareType extends AbstractType
                     new NotBlank(['message' => 'Le lieu de départ ne peut pas être vide.']),
                 ],
                 'attr' => [
-                    'placeholder' => 'Ex: Paris, Gare du Nord',
+                    'placeholder' => 'Ex: Paris',
+                    'class' => 'form-control'
+                ]
+            ])
+            ->add('start_detail', TextType::class, [
+                'label' => 'Lieu précis de départ (optionnel)',
+                'required' => false,
+                'attr' => [
+                    'placeholder' => 'Ex: Gare du Nord, Place de la République...',
                     'class' => 'form-control'
                 ]
             ])
@@ -67,7 +75,15 @@ class CarshareType extends AbstractType
                     new NotBlank(['message' => 'Le lieu d\'arrivée ne peut pas être vide.']),
                 ],
                 'attr' => [
-                    'placeholder' => 'Ex: Lyon, Part-Dieu',
+                    'placeholder' => 'Ex: Lyon',
+                    'class' => 'form-control'
+                ]
+            ])
+            ->add('end_detail', TextType::class, [
+                'label' => 'Lieu précis d\'arrivée (optionnel)',
+                'required' => false,
+                'attr' => [
+                    'placeholder' => 'Ex: Part-Dieu, Centre-ville...',
                     'class' => 'form-control'
                 ]
             ])
@@ -107,7 +123,11 @@ class CarshareType extends AbstractType
                 ],
                 'attr' => [
                     'placeholder' => '0.00',
-                    'class' => 'form-control'
+                    'class' => 'form-control',
+                    'step' => '0.01'
+                ],
+                'row_attr' => [
+                    'class' => 'money-input-group'
                 ]
             ])
             ->add('car', EntityType::class, [
