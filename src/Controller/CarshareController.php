@@ -6,6 +6,7 @@ use App\Entity\Carshare;
 use App\Form\CarshareSearchType;
 use App\Form\CarshareType;
 use App\Repository\CarshareRepository;
+use App\Repository\PlatformTransactionRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -37,6 +38,9 @@ class CarshareController extends AbstractController
         if (!$carshare) {
             throw $this->createNotFoundException('Carshare non trouvé');
         }
+
+        // Check and mark if expired
+        $this->checkAndMarkExpiredCarshares([$carshare]);
 
         return $this->render('carshare/fiche_carshare.html.twig', [
             'carshare' => $carshare,
@@ -83,6 +87,9 @@ class CarshareController extends AbstractController
                     $data['date'],
                     $data['passengers']
                 );
+
+                // Check and mark expired carshares
+                $this->checkAndMarkExpiredCarshares($searchResults);
 
                 // If no results found, look for alternative dates
                 $alternativeDates = [];
@@ -236,14 +243,12 @@ class CarshareController extends AbstractController
         $asDriver = [];
         if ($user->canDrive()) {
             $asDriver = $carshareRepository->findBy(['driver' => $user]);
+            // Check and mark expired carshares
+            $this->checkAndMarkExpiredCarshares($asDriver);
         }
-        
-        // TODO: Obtenir les covoiturages en tant que passager (nécessite une entité Booking)
-        $asPassenger = [];
 
         return $this->render('carshare/my_carshares.html.twig', [
             'asDriver' => $asDriver,
-            'asPassenger' => $asPassenger,
             'user' => $user,
         ]);
     }
@@ -288,15 +293,65 @@ class CarshareController extends AbstractController
         
         // Vérifier le token CSRF pour la sécurité
         if ($this->isCsrfTokenValid('delete'.$carshare->getId(), $request->request->get('_token'))) {
+            
+            // Gérer les réservations existantes
+            $reservationsCount = $carshare->getReservations()->count();
+            if ($reservationsCount > 0) {
+                // Annuler toutes les réservations et leurs transactions
+                $platformTransactionRepository = $this->entityManager->getRepository(\App\Entity\PlatformTransaction::class);
+                
+                foreach ($carshare->getReservations() as $reservation) {
+                    // Supprimer la transaction en attente associée
+                    $pendingTransaction = $platformTransactionRepository->findPendingByReservation($reservation);
+                    if ($pendingTransaction) {
+                        $this->entityManager->remove($pendingTransaction);
+                    }
+                    
+                    // Supprimer la réservation
+                    $this->entityManager->remove($reservation);
+                }
+            }
+            
+            // Supprimer les crédits liés à ce covoiturage
+            $creditRepository = $this->entityManager->getRepository(\App\Entity\Credit::class);
+            $relatedCredits = $creditRepository->findBy(['carshare' => $carshare]);
+            foreach ($relatedCredits as $credit) {
+                $this->entityManager->remove($credit);
+            }
+            
+            // Maintenant on peut supprimer le covoiturage
             $this->entityManager->remove($carshare);
             $this->entityManager->flush();
             
-            $this->addFlash('success', 'Votre covoiturage a été supprimé avec succès.');
+            if ($reservationsCount > 0) {
+                $this->addFlash('success', sprintf(
+                    'Votre covoiturage a été supprimé avec succès. %d réservation%s ont été automatiquement annulée%s.',
+                    $reservationsCount,
+                    $reservationsCount > 1 ? 's' : '',
+                    $reservationsCount > 1 ? 's' : ''
+                ));
+            } else {
+                $this->addFlash('success', 'Votre covoiturage a été supprimé avec succès.');
+            }
         } else {
             $this->addFlash('error', 'Token de sécurité invalide.');
         }
         
         return $this->redirectToRoute('app_carshare_my');
+    }
+
+    private function checkAndMarkExpiredCarshares(array $carshares): void
+    {
+        foreach ($carshares as $carshare) {
+            if ($carshare->isExpired()) {
+                $carshare->markAsExpired();
+                $this->entityManager->persist($carshare);
+            }
+        }
+        
+        if (!empty($carshares)) {
+            $this->entityManager->flush();
+        }
     }
 
 }

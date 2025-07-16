@@ -3,28 +3,46 @@
 {% block title %}Mes Covoiturages - EcoRide{% endblock %}
 
 {% block body %}
-<div class="container my-5">
-    {% for label, messages in app.flashes %}
-        <div class="alert alert-{{ label == 'error' ? 'danger' : (label == 'success' ? 'success' : 'info') }} alert-dismissible fade show" role="alert">
-            {% for message in messages %}
-                {{ message }}
-            {% endfor %}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    {% endfor %}
-
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>
-            <i class="fas fa-list me-2 text-success"></i>
-            Mes Covoiturages
-        </h1>
-        {% if user.canDrive() and user.cars|length > 0 %}
-            <a href="{{ path('app_carshare_new') }}" class="btn btn-success">
-                <i class="fas fa-plus me-2"></i>
-                Créer un covoiturage
+{% if not app.user %}
+    <div class="container mt-5">
+        <div class="alert alert-warning text-center">
+            <h4><i class="fas fa-exclamation-triangle me-2"></i>Accès refusé</h4>
+            <p>Vous devez être connecté pour accéder à vos covoiturages.</p>
+            <a href="{{ path('app_login') }}" class="btn btn-primary">
+                <i class="fas fa-sign-in-alt me-2"></i>Se connecter
             </a>
-        {% endif %}
+        </div>
     </div>
+{% else %}
+<h1 class="text-center mt-5">Mes covoiturages</h1>
+<div class="container my-5 d-flex flex-wrap justify-content-between">
+    
+    <div class="col-md-3 col-sm-12 mt-4">
+        {% include 'account/_menu.html.twig' %} 
+    </div>
+    
+    <div class="col-md-9 col-sm-12 mb-4">
+        {% for label, messages in app.flashes %}
+            <div class="alert alert-{{ label == 'error' ? 'danger' : (label == 'success' ? 'success' : 'info') }} alert-dismissible fade show" role="alert">
+                {% for message in messages %}
+                    {{ message }}
+                {% endfor %}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {% endfor %}
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="fas fa-list me-2 text-success"></i>
+                Mes Covoiturages
+            </h2>
+            {% if user.canDrive() and user.cars|length > 0 %}
+                <a href="{{ path('app_carshare_new') }}" class="btn btn-success">
+                    <i class="fas fa-plus me-2"></i>
+                    Créer un covoiturage
+                </a>
+            {% endif %}
+        </div>
 
     {% if user.canDrive() %}
     <div class="row">
@@ -75,10 +93,6 @@
                                             <div class="d-flex justify-content-between align-items-center">
                                                 <strong class="text-success">{{ carshare.price }} €</strong>
                                                 <div>
-                                                    <a href="{{ path('app_carshare_edit', {id: carshare.id}) }}" class="btn btn-outline-warning btn-sm me-1">
-                                                        <i class="fas fa-edit me-1"></i>
-                                                        Modifier
-                                                    </a>
                                                     <a href="{{ path('app_carshare_by_id', {id: carshare.id}) }}" class="btn btn-outline-success btn-sm">
                                                         <i class="fas fa-eye me-1"></i>
                                                         Voir
@@ -118,51 +132,19 @@
     </div>
     {% endif %}
 
-    {% if user.canBePassenger() %}
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header bg-info text-white">
-                    <h4 class="mb-0">
-                        <i class="fas fa-user-friends me-2"></i>
-                        En tant que passager
-                    </h4>
-                </div>
-                <div class="card-body">
-                    {% if asPassenger|length > 0 %}
-                        <div class="row">
-                            {% for booking in asPassenger %}
-                                {# TODO: Affichage des réservations quand l'entité Booking sera créée #}
-                            {% endfor %}
-                        </div>
-                    {% else %}
-                        <div class="text-center py-4">
-                            <i class="fas fa-user-friends fa-3x text-muted mb-3"></i>
-                            <h5 class="text-muted">Aucune réservation</h5>
-                            <p class="text-muted">Vous n'avez pas encore réservé de covoiturage en tant que passager.</p>
-                            <a href="{{ path('app_carshare_search') }}" class="btn btn-info">
-                                <i class="fas fa-search me-2"></i>
-                                Rechercher un covoiturage
-                            </a>
-                        </div>
-                    {% endif %}
-                </div>
-            </div>
+        {% if not user.canDrive() and not user.canBePassenger() %}
+        <div class="alert alert-warning text-center">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            <strong>Fonction non définie</strong><br>
+            Vous devez définir votre rôle (conducteur, passager ou les deux) dans votre profil pour utiliser cette page.
+            <br><br>
+            <a href="{{ path('app_account_profile') }}" class="btn btn-warning">
+                <i class="fas fa-user-edit me-2"></i>
+                Définir mon rôle
+            </a>
         </div>
+        {% endif %}
     </div>
-    {% endif %}
-
-    {% if not user.canDrive() and not user.canBePassenger() %}
-    <div class="alert alert-warning text-center">
-        <i class="fas fa-exclamation-triangle me-2"></i>
-        <strong>Fonction non définie</strong><br>
-        Vous devez définir votre rôle (conducteur, passager ou les deux) dans votre profil pour utiliser cette page.
-        <br><br>
-        <a href="{{ path('app_account_profile') }}" class="btn btn-warning">
-            <i class="fas fa-user-edit me-2"></i>
-            Définir mon rôle
-        </a>
-    </div>
-    {% endif %}
 </div>
+{% endif %}
 {% endblock %}

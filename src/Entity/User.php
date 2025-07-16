@@ -71,9 +71,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[Vich\UploadableField(mapping: 'user_photos', fileNameProperty: 'photo')]
     private ?File $photoFile = null;
 
-    #[ORM\Column(nullable: true)]
-    private ?\DateTimeImmutable $updatedAt = null;
-
     /**
      * @var Collection<int, Car>
      */
@@ -86,6 +83,30 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(targetEntity: Carshare::class, mappedBy: 'driver', orphanRemoval: true)]
     private Collection $carshares;
 
+    /**
+     * @var Collection<int, Credit>
+     */
+    #[ORM\OneToMany(targetEntity: Credit::class, mappedBy: 'user', orphanRemoval: true)]
+    private Collection $credits;
+
+    /**
+     * @var Collection<int, Reservation>
+     */
+    #[ORM\OneToMany(targetEntity: Reservation::class, mappedBy: 'passenger', orphanRemoval: true)]
+    private Collection $reservations;
+
+    /**
+     * @var Collection<int, Review>
+     */
+    #[ORM\OneToMany(targetEntity: Review::class, mappedBy: 'driver', orphanRemoval: true)]
+    private Collection $receivedReviews;
+
+    /**
+     * @var Collection<int, Review>
+     */
+    #[ORM\OneToMany(targetEntity: Review::class, mappedBy: 'passenger', orphanRemoval: true)]
+    private Collection $givenReviews;
+
     #[ORM\ManyToOne(targetEntity: Fonction::class, inversedBy: 'users')]
     #[ORM\JoinColumn(nullable: true)]
     private ?Fonction $fonction = null;
@@ -94,7 +115,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         $this->cars = new ArrayCollection();
         $this->carshares = new ArrayCollection();
+        $this->credits = new ArrayCollection();
+        $this->reservations = new ArrayCollection();
         $this->parameters = new ArrayCollection();
+        $this->receivedReviews = new ArrayCollection();
+        $this->givenReviews = new ArrayCollection();
+        
+        // Set default photo for new users
+        $this->photo = 'default.jpg';
     }
 
     public function getId(): ?int
@@ -246,7 +274,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function setPhoto(?string $photo): static
     {
-        $this->photo = $photo;
+        // If photo is null or empty, use default photo
+        $this->photo = $photo ?: 'default.jpg';
 
         return $this;
     }
@@ -262,28 +291,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         $this->photoFile = $photoFile;
 
-        if (null !== $photoFile) {
-            // It is required that at least one field changes if you are using doctrine
-            // otherwise the event listeners won't be called and the file is lost
-            $this->updatedAt = new \DateTimeImmutable();
-        }
+        // Note: VichUploader will handle file changes automatically
     }
 
     public function getPhotoFile(): ?File
     {
         return $this->photoFile;
-    }
-
-    public function getUpdatedAt(): ?\DateTimeImmutable
-    {
-        return $this->updatedAt;
-    }
-
-    public function setUpdatedAt(?\DateTimeImmutable $updatedAt): static
-    {
-        $this->updatedAt = $updatedAt;
-
-        return $this;
     }
 
     /**
@@ -375,7 +388,26 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      */
     public function __sleep(): array
     {
-        return array_diff(array_keys(get_object_vars($this)), ['photoFile']);
+        // Explicitly list properties to serialize, excluding problematic ones
+        return [
+            'id',
+            'email', 
+            'roles',
+            'password',
+            'lastname',
+            'firstname',
+            'surname',
+            'phone',
+            'address',
+            'birthday',
+            'photo',
+            'parameters',
+            'cars',
+            'carshares',
+            'credits',
+            'reservations',
+            'fonction'
+        ];
     }
 
     public function getFonction(): ?Fonction
@@ -404,5 +436,203 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function canBePassenger(): bool
     {
         return $this->fonction && $this->fonction->canBePassenger();
+    }
+
+    /**
+     * @return Collection<int, Credit>
+     */
+    public function getCredits(): Collection
+    {
+        return $this->credits;
+    }
+
+    public function addCredit(Credit $credit): static
+    {
+        if (!$this->credits->contains($credit)) {
+            $this->credits->add($credit);
+            $credit->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeCredit(Credit $credit): static
+    {
+        if ($this->credits->removeElement($credit)) {
+            // set the owning side to null (unless already changed)
+            if ($credit->getUser() === $this) {
+                $credit->setUser(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Reservation>
+     */
+    public function getReservations(): Collection
+    {
+        return $this->reservations;
+    }
+
+    public function addReservation(Reservation $reservation): static
+    {
+        if (!$this->reservations->contains($reservation)) {
+            $this->reservations->add($reservation);
+            $reservation->setPassenger($this);
+        }
+
+        return $this;
+    }
+
+    public function removeReservation(Reservation $reservation): static
+    {
+        if ($this->reservations->removeElement($reservation)) {
+            // set the owning side to null (unless already changed)
+            if ($reservation->getPassenger() === $this) {
+                $reservation->setPassenger(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * Calculate total credit balance
+     */
+    public function getCreditBalance(): float
+    {
+        $balance = 0.0;
+        foreach ($this->credits as $credit) {
+            $balance += $credit->getAmount();
+        }
+        return $balance;
+    }
+
+    /**
+     * Add credits to user account
+     */
+    public function addCredits(float $amount, string $type, string $description, ?Carshare $carshare = null): Credit
+    {
+        $credit = new Credit();
+        $credit->setUser($this);
+        $credit->setAmount($amount);
+        $credit->setType($type);
+        $credit->setDescription($description);
+        $credit->setCarshare($carshare);
+        
+        $this->addCredit($credit);
+        
+        return $credit;
+    }
+
+    /**
+     * Spend credits (debit)
+     */
+    public function spendCredits(float $amount, string $description, ?Carshare $carshare = null): Credit
+    {
+        return $this->addCredits(-$amount, 'SPENT', $description, $carshare);
+    }
+
+    /**
+     * Check if user can afford a certain amount
+     */
+    public function canAfford(float $amount): bool
+    {
+        return $this->getCreditBalance() >= $amount;
+    }
+
+    /**
+     * String representation of the user for EasyAdmin and other contexts
+     */
+    public function __toString(): string
+    {
+        return $this->firstname . ' ' . $this->lastname . ' (' . $this->email . ')';
+    }
+
+    /**
+     * @return Collection<int, Review>
+     */
+    public function getReceivedReviews(): Collection
+    {
+        return $this->receivedReviews;
+    }
+
+    public function addReceivedReview(Review $review): static
+    {
+        if (!$this->receivedReviews->contains($review)) {
+            $this->receivedReviews->add($review);
+            $review->setDriver($this);
+        }
+
+        return $this;
+    }
+
+    public function removeReceivedReview(Review $review): static
+    {
+        if ($this->receivedReviews->removeElement($review)) {
+            if ($review->getDriver() === $this) {
+                $review->setDriver(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Review>
+     */
+    public function getGivenReviews(): Collection
+    {
+        return $this->givenReviews;
+    }
+
+    public function addGivenReview(Review $review): static
+    {
+        if (!$this->givenReviews->contains($review)) {
+            $this->givenReviews->add($review);
+            $review->setPassenger($this);
+        }
+
+        return $this;
+    }
+
+    public function removeGivenReview(Review $review): static
+    {
+        if ($this->givenReviews->removeElement($review)) {
+            if ($review->getPassenger() === $this) {
+                $review->setPassenger(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * Get average rating as driver (published reviews only)
+     */
+    public function getAverageRating(): ?float
+    {
+        $publishedReviews = $this->receivedReviews->filter(fn(Review $review) => $review->isPublished());
+        
+        if ($publishedReviews->isEmpty()) {
+            return null;
+        }
+
+        $total = 0;
+        foreach ($publishedReviews as $review) {
+            $total += $review->getRating();
+        }
+
+        return round($total / $publishedReviews->count(), 1);
+    }
+
+    /**
+     * Count published reviews received as driver
+     */
+    public function getPublishedReviewsCount(): int
+    {
+        return $this->receivedReviews->filter(fn(Review $review) => $review->isPublished())->count();
     }
 }

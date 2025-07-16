@@ -12,6 +12,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\ChoiceField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\FormField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\ImageField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
 use Vich\UploaderBundle\Form\Type\VichImageType;
 
 class UserCrudController extends AbstractCrudController
@@ -25,51 +26,44 @@ class UserCrudController extends AbstractCrudController
     public function configureFields(string $pageName): iterable
     {
         return [
-            TextField::new('id')->setLabel('ID')->onlyOnIndex(),
-            TextField::new('lastname')->setLabel('Nom'),
-            TextField::new('firstname')->setLabel('Prénom'),
-            TextField::new('surname')->setLabel('Pseudo'),
-            TextField::new('email')->setLabel('Email'),
-            TextField::new('phone')->setLabel('Téléphone'),
-            TextField::new('address')->setLabel('Adresse'),
-            DateTimeField::new('birthday')
+            IdField::new('id')->onlyOnIndex(),
+            TextField::new('lastname', 'Nom'),
+            TextField::new('firstname', 'Prénom'),
+            TextField::new('surname', 'Pseudo'),
+            TextField::new('email', 'Email'),
+            TextField::new('phone', 'Téléphone'),
+            TextField::new('address', 'Adresse'),
+            
+            DateTimeField::new('birthday', 'Date de naissance')
                 ->setFormTypeOptions([
                     'widget' => 'single_text',
                     'html5' => true,
                     'required' => false,
                 ])
                 ->setFormat('yyyy-MM-dd')
-                ->setFormTypeOption('input', 'datetime_immutable')
-                ->setLabel('Date de naissance'),
-            
-            FormField::addPanel('Gestion des images')->setIcon('fa fa-image'),
-            TextField::new('photoFile', 'Télécharger Photo')
-                ->setFormType(VichImageType::class)
-                ->onlyOnForms()
-                ->setColumns(6),
-                
-            ImageField::new('photo', 'Aperçu Photo')
-                ->setBasePath('/uploads/users/')
-                ->onlyOnIndex(),
-            
-            FormField::addPanel('Préférences utilisateur')->setIcon('fa fa-cog'),
-            AssociationField::new('parameters')
-                ->setLabel('Paramètres')
-                ->setFormTypeOptions([
-                    'by_reference' => false,
-                ])
                 ->hideOnIndex(),
             
-            ChoiceField::new('roles')
-                ->setLabel('Rôles')
+            FormField::addPanel('Photo')->onlyOnForms(),
+            TextField::new('photoFile', 'Télécharger Photo')
+                ->setFormType(VichImageType::class)
+                ->onlyOnForms(),
+                
+            ImageField::new('photo', 'Photo')
+                ->setBasePath('/uploads/user_photos/')
+                ->onlyOnIndex(),
+            
+            FormField::addPanel('Paramètres et rôles')->onlyOnForms(),
+            AssociationField::new('parameters', 'Paramètres')
+                ->onlyOnForms(),
+            
+            ChoiceField::new('roles', 'Rôles')
                 ->setChoices([
                     'Administrateur' => 'ROLE_ADMIN',
                     'Employé' => 'ROLE_EMPLOYEE',
                     'Utilisateur' => 'ROLE_USER',
                 ])
                 ->allowMultipleChoices()
-                ->renderExpanded()
-                ->hideOnIndex(),
+                ->onlyOnForms(),
         ];
     }
 

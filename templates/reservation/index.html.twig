@@ -1,0 +1,164 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mes Réservations{% endblock %}
+
+{% block body %}
+{% if not app.user %}
+    <div class="container mt-5">
+        <div class="alert alert-warning text-center">
+            <h4><i class="fas fa-exclamation-triangle me-2"></i>Accès refusé</h4>
+            <p>Vous devez être connecté pour accéder à vos réservations.</p>
+            <a href="{{ path('app_login') }}" class="btn btn-primary">
+                <i class="fas fa-sign-in-alt me-2"></i>Se connecter
+            </a>
+        </div>
+    </div>
+{% else %}
+<h1 class="text-center mt-5">Mes réservations</h1>
+<div class="container my-5 d-flex flex-wrap justify-content-between">
+    
+    <div class="col-md-3 col-sm-12 mt-4">
+        {% include 'account/_menu.html.twig' %} 
+    </div>
+    
+    <div class="col-md-9 col-sm-12 mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="fas fa-bookmark me-2"></i>Mes réservations</h2>
+        </div>
+            {% if reservations|length > 0 %}
+                {% for reservation in reservations %}
+                    <div class="card mb-3">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <div>
+                                <h5 class="mb-0">{{ reservation.carshare.formattedRoute }}</h5>
+                                <small class="text-muted">
+                                    Réservé le {{ reservation.createdAt|date('d/m/Y à H:i') }}
+                                </small>
+                            </div>
+                            <div>
+                                {% if reservation.status == 'CONFIRMED' %}
+                                    <span class="badge bg-success">Confirmé</span>
+                                {% elseif reservation.status == 'CANCELLED' %}
+                                    <span class="badge bg-danger">Annulé</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6><i class="fas fa-calendar me-2"></i>Détails du trajet</h6>
+                                    <p class="mb-1"><strong>Départ:</strong> {{ reservation.carshare.start|date('d/m/Y à H:i') }}</p>
+                                    <p class="mb-1"><strong>Arrivée:</strong> {{ reservation.carshare.end|date('d/m/Y à H:i') }}</p>
+                                    <p class="mb-1"><strong>Passagers:</strong> {{ reservation.passengersCount }} personne{{ reservation.passengersCount > 1 ? 's' : '' }}</p>
+                                    <p class="mb-1"><strong>Prix total:</strong> {{ reservation.price|number_format(2) }} crédits</p>
+                                    <p class="mb-0"><strong>Places restantes:</strong> {{ reservation.carshare.availablePlaces }}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6><i class="fas fa-user me-2"></i>Conducteur</h6>
+                                    <p class="mb-1">{{ reservation.carshare.driver.firstname }} {{ reservation.carshare.driver.lastname }}</p>
+                                    <p class="mb-1"><strong>Téléphone:</strong> {{ reservation.carshare.driver.phone }}</p>
+                                    
+                                    <h6 class="mt-3"><i class="fas fa-car me-2"></i>Véhicule</h6>
+                                    <p class="mb-0">
+                                        {{ reservation.carshare.car.brand.content }} {{ reservation.carshare.car.model }}
+                                        <span class="text-muted">({{ reservation.carshare.car.color }})</span>
+                                        {% if reservation.carshare.car.energyType == 'ELECTRICITE' or reservation.carshare.car.energyType == 'HYBRID' %}
+                                            <i class="fas fa-leaf text-success ms-2" title="Véhicule écologique"></i>
+                                        {% endif %}
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            <!-- Trip Status and Validation Section -->
+                            {% if reservation.carshare.tripStatus %}
+                                <div class="mt-3 p-3 bg-light rounded">
+                                    <h6><i class="fas fa-road me-2"></i>État du trajet</h6>
+                                    
+                                    {% if reservation.carshare.tripStatus == 'PENDING' %}
+                                        <div class="alert alert-secondary mb-2">
+                                            <i class="fas fa-clock me-2"></i>
+                                            En attente du démarrage par le conducteur
+                                        </div>
+                                    {% elseif reservation.carshare.tripStatus == 'STARTED' %}
+                                        <div class="alert alert-warning mb-2">
+                                            <i class="fas fa-play me-2"></i>
+                                            Trajet en cours - Démarré {{ reservation.carshare.startedAt|date('d/m à H:i') }}
+                                        </div>
+                                    {% elseif reservation.carshare.tripStatus == 'ARRIVED' %}
+                                        {% if reservation.canBeValidated %}
+                                            <div class="alert alert-info mb-3">
+                                                <i class="fas fa-flag me-2"></i>
+                                                <strong>Le conducteur est arrivé à destination !</strong><br>
+                                                <small>Validez le trajet pour finaliser le transfert des crédits.</small>
+                                            </div>
+                                            
+                                            <form method="post" action="{{ path('app_trip_validate', {'id': reservation.id}) }}" class="d-inline">
+                                                <input type="hidden" name="_token" value="{{ csrf_token('validate-trip' ~ reservation.id) }}">
+                                                <button type="submit" class="btn btn-success" onclick="return confirm('Confirmer que le trajet s\'est bien déroulé ?')">
+                                                    <i class="fas fa-check me-2"></i>Trajet réalisé
+                                                </button>
+                                            </form>
+                                        {% elseif reservation.isPassengerValidated %}
+                                            <div class="alert alert-success mb-2">
+                                                <i class="fas fa-check-circle me-2"></i>
+                                                Vous avez validé ce trajet {{ reservation.validatedAt|date('d/m à H:i') }}
+                                            </div>
+                                        {% else %}
+                                            <div class="alert alert-info mb-2">
+                                                <i class="fas fa-flag me-2"></i>
+                                                Le conducteur est arrivé à destination. Validation en attente.
+                                            </div>
+                                        {% endif %}
+                                    {% elseif reservation.carshare.tripStatus == 'COMPLETED' %}
+                                        <div class="alert alert-success mb-2">
+                                            <i class="fas fa-check-circle me-2"></i>
+                                            <strong>Trajet terminé et validé !</strong><br>
+                                            <small>{{ reservation.price|number_format(2) }} crédits ont été transférés au conducteur.</small>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+                            
+                            {% if reservation.status == 'CONFIRMED' %}
+                                <div class="mt-3 d-flex justify-content-between align-items-center">
+                                    <a href="{{ path('app_carshare_by_id', {'id': reservation.carshare.id}) }}" 
+                                       class="btn btn-outline-primary btn-sm">
+                                        <i class="fas fa-eye me-2"></i>Voir le trajet
+                                    </a>
+                                    
+                                    {% if not reservation.carshare.tripStatus or reservation.carshare.tripStatus == 'PENDING' %}
+                                        <form method="post" action="{{ path('app_reservation_cancel', {'id': reservation.id}) }}" 
+                                              class="d-inline" onsubmit="return confirm('Êtes-vous sûr de vouloir annuler cette réservation ?')">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('cancel' ~ reservation.id) }}">
+                                            <input type="hidden" name="_method" value="DELETE">
+                                            <button type="submit" class="btn btn-outline-danger btn-sm">
+                                                <i class="fas fa-times me-2"></i>Annuler la réservation
+                                            </button>
+                                        </form>
+                                    {% else %}
+                                        <span class="text-muted small">
+                                            <i class="fas fa-info-circle me-1"></i>
+                                            Annulation impossible (trajet {{ reservation.carshare.tripStatus == 'STARTED' ? 'en cours' : 'terminé' }})
+                                        </span>
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="card">
+                    <div class="card-body text-center py-5">
+                        <i class="fas fa-bookmark fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">Aucune réservation</h5>
+                        <p class="text-muted">Vous n'avez pas encore réservé de covoiturage</p>
+                        <a href="{{ path('app_carshare_search') }}" class="btn btn-primary">
+                            <i class="fas fa-search me-2"></i>Rechercher un covoiturage
+                        </a>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+{% endif %}
+{% endblock %}
