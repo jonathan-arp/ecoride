@@ -83,7 +83,6 @@ class CarshareController extends AbstractController
         
         if ($form->isSubmitted()) {
             if ($form->isValid()) {
-                $searchPerformed = true;
                 $data = $form->getData();
                 
                 $searchResults = $carshareRepository->searchCarshares(
@@ -94,9 +93,26 @@ class CarshareController extends AbstractController
                 );
                 
                 $this->addFlash('success', 'Recherche effectuée pour ' . count($searchResults) . ' résultat(s).');
+                
+                // Store search results in session to display after redirect
+                $request->getSession()->set('search_results', $searchResults);
+                $request->getSession()->set('search_performed', true);
+                
+                // Redirect to avoid Turbo form submission error
+                return $this->redirectToRoute('app_carshare_search');
             } else {
                 $this->addFlash('error', 'Veuillez corriger les erreurs dans le formulaire.');
             }
+        }
+        
+        // Check if we have search results from a redirect
+        if ($request->getSession()->has('search_results')) {
+            $searchResults = $request->getSession()->get('search_results');
+            $searchPerformed = $request->getSession()->get('search_performed', false);
+            
+            // Clear the session data
+            $request->getSession()->remove('search_results');
+            $request->getSession()->remove('search_performed');
         }
         
         return $this->render('carshare/search.html.twig', [

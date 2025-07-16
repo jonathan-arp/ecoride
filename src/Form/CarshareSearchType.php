@@ -51,7 +51,7 @@ class CarshareSearchType extends AbstractType
                     'min' => (new \DateTime())->format('Y-m-d')
                 ]
             ])
-            ->add('search', SubmitType::class, [
+            ->add('submit', SubmitType::class, [
                 'label' => 'Rechercher',
                 'attr' => [
                     'class' => 'btn btn-success btn-lg w-100'
