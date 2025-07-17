@@ -1,0 +1,92 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Nouveau paramètre de conducteur{% endblock %}
+
+{% block body %}
+<h1 class="text-center mt-5">Nouveau paramètre de conducteur</h1>
+
+<div class="container my-5 d-flex flex-wrap justify-content-between">
+    <div class="col-md-3 col-sm-12 mt-4">
+        {% include 'account/_menu.html.twig' %}
+    </div>
+    
+    <div class="col-md-9 col-sm-12 mb-4">
+        <div class="card" id="card-account">
+            <div class="card-header bg-gold">
+                <h4>Créer un nouveau paramètre</h4>
+            </div>
+            
+            <div class="card-body">
+                {{ form_start(form) }}
+                
+                <div class="mb-3">
+                    {{ form_label(form.name) }}
+                    {{ form_widget(form.name) }}
+                    {{ form_errors(form.name) }}
+                    <small class="form-text text-muted">
+                        Exemples: "Musique autorisée", "Animaux acceptés", "Non-fumeur", "Conversation", etc.
+                    </small>
+                </div>
+
+                <div class="mb-3">
+                    {{ form_label(form.value) }}
+                    {{ form_widget(form.value) }}
+                    {{ form_errors(form.value) }}
+                    <small class="form-text text-muted">
+                        Description détaillée de votre préférence en tant que conducteur.
+                    </small>
+                </div>
+
+                <div class="mb-3">
+                    {{ form_label(form.icon) }}
+                    {{ form_widget(form.icon) }}
+                    {{ form_errors(form.icon) }}
+                    <small class="form-text text-muted">
+                        Icône FontAwesome (optionnel). Exemples: "fas fa-music", "fas fa-paw", "fas fa-ban-smoking"
+                    </small>
+                </div>
+
+                <div class="d-flex justify-content-between">
+                    <a href="{{ path('app_driver_parameters') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Retour
+                    </a>
+                    
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-save me-2"></i>Créer le paramètre
+                    </button>
+                </div>
+
+                {{ form_end(form) }}
+            </div>
+        </div>
+
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5><i class="fas fa-lightbulb me-2"></i>Suggestions de paramètres</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Confort & Ambiance</h6>
+                        <ul class="list-unstyled">
+                            <li><i class="fas fa-music text-primary me-2"></i>Musique autorisée</li>
+                            <li><i class="fas fa-comments text-primary me-2"></i>Conversation souhaitée</li>
+                            <li><i class="fas fa-volume-mute text-primary me-2"></i>Trajet silencieux</li>
+                            <li><i class="fas fa-snowflake text-primary me-2"></i>Climatisation</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Règles & Préférences</h6>
+                        <ul class="list-unstyled">
+                            <li><i class="fas fa-ban-smoking text-danger me-2"></i>Non-fumeur</li>
+                            <li><i class="fas fa-paw text-warning me-2"></i>Animaux acceptés</li>
+                            <li><i class="fas fa-baby text-info me-2"></i>Sièges enfants disponibles</li>
+                            <li><i class="fas fa-suitcase text-secondary me-2"></i>Bagages acceptés</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

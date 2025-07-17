@@ -1,0 +1,97 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mes paramètres de conducteur{% endblock %}
+
+{% block body %}
+<h1 class="text-center mt-5">Mes paramètres de conducteur</h1>
+
+<div class="container my-5 d-flex flex-wrap justify-content-between">
+    <div class="col-md-3 col-sm-12 mt-4">
+        {% include 'account/_menu.html.twig' %}
+    </div>
+    
+    <div class="col-md-9 col-sm-12 mb-4">
+        <div class="card" id="card-account">
+            <div class="card-header bg-gold d-flex justify-content-between align-items-center">
+                <h4>Mes préférences de conducteur</h4>
+                <a href="{{ path('app_driver_parameter_new') }}" class="btn btn-success btn-sm">
+                    <i class="fas fa-plus me-2"></i>Nouveau paramètre
+                </a>
+            </div>
+            
+            <div class="card-body">
+                {% if userParameters|length > 0 %}
+                    <h5 class="text-success mb-3">
+                        <i class="fas fa-check-circle me-2"></i>Mes paramètres activés
+                    </h5>
+                    <div class="row mb-4">
+                        {% for parameter in userParameters %}
+                            <div class="col-md-6 col-lg-4 mb-3">
+                                <div class="card border-success">
+                                    <div class="card-body text-center">
+                                        {% if parameter.icon %}
+                                            <i class="{{ parameter.icon }} fa-2x text-success mb-2"></i>
+                                        {% else %}
+                                            <i class="fas fa-cog fa-2x text-success mb-2"></i>
+                                        {% endif %}
+                                        <h6 class="card-title">{{ parameter.name }}</h6>
+                                        <p class="card-text small text-muted">{{ parameter.value }}</p>
+                                        <form method="post" action="{{ path('app_driver_parameter_toggle', {id: parameter.id}) }}" class="d-inline">
+                                            <button type="submit" class="btn btn-outline-danger btn-sm">
+                                                <i class="fas fa-times me-1"></i>Retirer
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                {% set availableParameters = [] %}
+                {% for parameter in allParameters %}
+                    {% if not userParameters.contains(parameter) %}
+                        {% set availableParameters = availableParameters|merge([parameter]) %}
+                    {% endif %}
+                {% endfor %}
+
+                {% if availableParameters|length > 0 %}
+                    <h5 class="text-primary mb-3">
+                        <i class="fas fa-plus-circle me-2"></i>Paramètres disponibles
+                    </h5>
+                    <div class="row">
+                        {% for parameter in availableParameters %}
+                            <div class="col-md-6 col-lg-4 mb-3">
+                                <div class="card border-light">
+                                    <div class="card-body text-center">
+                                        {% if parameter.icon %}
+                                            <i class="{{ parameter.icon }} fa-2x text-muted mb-2"></i>
+                                        {% else %}
+                                            <i class="fas fa-cog fa-2x text-muted mb-2"></i>
+                                        {% endif %}
+                                        <h6 class="card-title">{{ parameter.name }}</h6>
+                                        <p class="card-text small text-muted">{{ parameter.value }}</p>
+                                        <form method="post" action="{{ path('app_driver_parameter_toggle', {id: parameter.id}) }}" class="d-inline">
+                                            <button type="submit" class="btn btn-outline-success btn-sm">
+                                                <i class="fas fa-plus me-1"></i>Ajouter
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                {% if allParameters|length == 0 %}
+                    <div class="alert alert-info text-center">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Aucun paramètre disponible. 
+                        <a href="{{ path('app_driver_parameter_new') }}" class="alert-link">Créez votre premier paramètre</a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

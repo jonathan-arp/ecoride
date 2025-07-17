@@ -1,0 +1,168 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Rechercher un covoiturage - EcoRide{% endblock %}
+
+{% block body %}
+{% for label, messages in app.flashes %}
+    <div class="container mt-3">
+        <div class="alert alert-{{ label == 'error' ? 'danger' : (label == 'success' ? 'success' : 'info') }} alert-dismissible fade show" role="alert">
+            {% for message in messages %}
+                {{ message }}
+            {% endfor %}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    </div>
+{% endfor %}
+
+{% if not searchPerformed %}
+<div class="hero-section bg-success text-white py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <h1 class="text-center mb-4">
+                    Trouvez votre covoiturage idéal
+                </h1>
+                <p class="text-center lead mb-5">
+                    Recherchez des covoiturages selon vos critères de voyage. Aucun covoiturage n'est affiché par défaut.
+                </p>
+                
+                <div class="card shadow-lg">
+                    <div class="card-body p-4">
+                        {{ form_start(searchForm) }}
+                        
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    {{ form_label(searchForm.departureLocation, null, {'label_attr': {'class': 'form-label fw-bold'}}) }}
+                                    {{ form_widget(searchForm.departureLocation, {'attr': {'class': 'form-control'}}) }}
+                                    {{ form_errors(searchForm.departureLocation) }}
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    {{ form_label(searchForm.arrivalLocation, null, {'label_attr': {'class': 'form-label fw-bold'}}) }}
+                                    {{ form_widget(searchForm.arrivalLocation, {'attr': {'class': 'form-control'}}) }}
+                                    {{ form_errors(searchForm.arrivalLocation) }}
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    {{ form_label(searchForm.passengers, null, {'label_attr': {'class': 'form-label fw-bold'}}) }}
+                                    {{ form_widget(searchForm.passengers, {'attr': {'class': 'form-control'}}) }}
+                                    {{ form_errors(searchForm.passengers) }}
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    {{ form_label(searchForm.date, null, {'label_attr': {'class': 'form-label fw-bold'}}) }}
+                                    {{ form_widget(searchForm.date, {'attr': {'class': 'form-control'}}) }}
+                                    {{ form_errors(searchForm.date) }}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <div class="d-grid">
+                                    <button type="submit" class="btn btn-success btn-lg">
+                                        Rechercher des covoiturages
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        {{ form_end(searchForm) }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container my-5">
+    <div class="text-center py-5">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body py-5">
+                <h3 class="text-success">Recherchez votre covoiturage</h3>
+                <p class="text-muted mb-4">
+                    Utilisez le formulaire ci-dessus pour rechercher des covoiturages selon vos critères de voyage.
+                </p>
+                <small class="text-muted">
+                    Aucun covoiturage n'est affiché par défaut. Veuillez effectuer une recherche pour voir les résultats.
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% if searchPerformed %}
+    <div class="container my-5">
+        {% if searchResults|length > 0 %}
+            <div class="row">
+                <div class="col-12">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h2 class="text-success">
+                            {{ searchResults|length }} covoiturage(s) trouvé(s)
+                        </h2>
+                        <a href="{{ path('app_carshare_search') }}" class="btn btn-outline-primary">
+                            Nouvelle recherche
+                        </a>
+                    </div>
+                    
+                    <!-- React component for search results with filters -->
+                    <div {{ react_component('CarsharesFilter', {
+                        carshares: searchResults,
+                        carshareUrlPattern: '/carshares/'
+                    }) }}></div>
+                </div>
+            </div>
+        {% else %}
+            <div class="text-center py-5">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body py-5">
+                        <h3 class="text-muted">Aucun covoiturage trouvé</h3>
+                        <p class="text-muted mb-4">
+                            Nous n'avons pas trouvé de covoiturages correspondant à vos critères de recherche
+                            {% if searchCriteria.departureLocation and searchCriteria.arrivalLocation and searchCriteria.date %}
+                                pour le trajet <strong>{{ searchCriteria.departureLocation }}</strong> → <strong>{{ searchCriteria.arrivalLocation }}</strong> 
+                                le <strong>{{ searchCriteria.date|date('d/m/Y') }}</strong>.
+                            {% else %}.
+                            {% endif %}
+                        </p>
+                        
+                        {% if alternativeDates|length > 0 %}
+                            <div class="mt-4 mb-4">
+                                <h5 class="text-primary mb-3">Autres dates disponibles sur ce trajet :</h5>
+                                <div class="row justify-content-center">
+                                    {% for dateInfo in alternativeDates %}
+                                        <div class="col-auto mb-2">
+                                            <a href="{{ path('app_carshare_search') }}?departureLocation={{ searchCriteria.departureLocation|url_encode }}&arrivalLocation={{ searchCriteria.arrivalLocation|url_encode }}&date={{ dateInfo.date|date('Y-m-d') }}&passengers={{ searchCriteria.passengers }}" 
+                                               class="btn btn-outline-success btn-sm">
+                                                {{ dateInfo.date|date('d/m/Y') }}
+                                                <span class="badge bg-success ms-1">{{ dateInfo.count }}</span>
+                                            </a>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                                <small class="text-muted d-block mt-2">
+                                    Cliquez sur une date pour relancer la recherche
+                                </small>
+                            </div>
+                        {% endif %}
+                        
+                        <div class="d-flex justify-content-center">
+                            <a href="{{ path('app_carshare_search') }}" class="btn btn-outline-primary">
+                                Nouvelle recherche
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+{% endif %}
+{% endblock %}

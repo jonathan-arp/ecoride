@@ -1,0 +1,220 @@
+{% extends '@EasyAdmin/page/content.html.twig' %}
+
+{% block page_title %}Dashboard EcoRide - Panneau d'Administration{% endblock %}
+
+{% block page_content %}
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <i class="fas fa-car fa-2x text-primary mb-2"></i>
+                <h4 class="card-title">{{ stats.totalCarshares }}</h4>
+                <p class="card-text text-muted">Covoiturages</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <i class="fas fa-users fa-2x text-success mb-2"></i>
+                <h4 class="card-title">{{ stats.totalUsers }}</h4>
+                <p class="card-text text-muted">Utilisateurs</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <i class="fas fa-star fa-2x text-warning mb-2"></i>
+                <h4 class="card-title">{{ stats.totalReviews }}</h4>
+                <p class="card-text text-muted">Avis</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <i class="fas fa-coins fa-2x text-info mb-2"></i>
+                <h4 class="card-title">{{ stats.totalPlatformCredits }}</h4>
+                <p class="card-text text-muted">Crédits Plateforme</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body text-center">
+                <i class="fas fa-coins fa-2x text-secondary mb-2"></i>
+                <h4 class="card-title">{{ stats.totalCreditsInCirculation }}</h4>
+                <p class="card-text text-muted">Crédits en Circulation</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body text-center">
+                <i class="fas fa-star fa-2x text-warning mb-2"></i>
+                <h4 class="card-title">{{ stats.totalReviews }}</h4>
+                <p class="card-text text-muted">Avis Clients</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-chart-line mr-2"></i>
+                    Covoiturages par jour (30 derniers jours)
+                </h5>
+            </div>
+            <div class="card-body">
+                <canvas id="carsharesChart" style="height: 300px;"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-coins mr-2"></i>
+                    Crédits gagnés par jour (30 derniers jours)
+                </h5>
+            </div>
+            <div class="card-body">
+                <canvas id="creditsChart" style="height: 300px;"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-lg-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-info-circle mr-2"></i>
+                    Actions Rapides
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="btn-toolbar" role="toolbar">
+                    <div class="btn-group mr-2" role="group">
+                        <a href="{{ ea_url().setController('App\\Controller\\Admin\\UserCrudController') }}" class="btn btn-primary">
+                            <i class="fas fa-users mr-1"></i>
+                            Gérer les Utilisateurs
+                        </a>
+                    </div>
+                    <div class="btn-group mr-2" role="group">
+                        <a href="{{ ea_url().setController('App\\Controller\\Admin\\EmployeeCrudController') }}" class="btn btn-success">
+                            <i class="fas fa-user-tie mr-1"></i>
+                            Gérer les Employés
+                        </a>
+                    </div>
+                    <div class="btn-group mr-2" role="group">
+                        <a href="{{ ea_url().setController('App\\Controller\\Admin\\ReviewCrudController') }}" class="btn btn-warning">
+                            <i class="fas fa-star mr-1"></i>
+                            Modérer les Avis
+                        </a>
+                    </div>
+                    <div class="btn-group" role="group">
+                        <a href="{{ path('admin_update_stats') }}" class="btn btn-info">
+                            <i class="fas fa-sync mr-1"></i>
+                            Mettre à jour les Stats
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Configuration commune pour les graphiques
+    const commonOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                display: false
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    stepSize: 1
+                }
+            }
+        }
+    };
+
+    // Graphique des covoiturages
+    const carsharesCtx = document.getElementById('carsharesChart').getContext('2d');
+    const carsharesData = {{ carsharesChartData|json_encode|raw }};
+    
+    new Chart(carsharesCtx, {
+        type: 'line',
+        data: {
+            labels: carsharesData.labels,
+            datasets: [{
+                label: 'Covoiturages',
+                data: carsharesData.data,
+                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 2,
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            ...commonOptions,
+            plugins: {
+                ...commonOptions.plugins,
+                title: {
+                    display: true,
+                    text: 'Nombre de covoiturages créés par jour'
+                }
+            }
+        }
+    });
+
+    // Graphique des crédits
+    const creditsCtx = document.getElementById('creditsChart').getContext('2d');
+    const creditsData = {{ creditsChartData|json_encode|raw }};
+    
+    new Chart(creditsCtx, {
+        type: 'bar',
+        data: {
+            labels: creditsData.labels,
+            datasets: [{
+                label: 'Crédits',
+                data: creditsData.data,
+                backgroundColor: 'rgba(255, 193, 7, 0.6)',
+                borderColor: 'rgba(255, 193, 7, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            ...commonOptions,
+            plugins: {
+                ...commonOptions.plugins,
+                title: {
+                    display: true,
+                    text: 'Crédits gagnés par la plateforme par jour'
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

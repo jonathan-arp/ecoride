@@ -1,3 +1,501 @@
 body {
-    background-color: skyblue;
+  font-family: "Playfair Display", serif;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+}
+body {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+main {
+  flex: 1 0 auto;
+}
+footer {
+  flex-shrink: 0;
+}
+
+ul {
+  list-style-type: none;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+@media (max-width: 576px) {
+  .navbar-brand {
+    max-height: 60px;
+  }
+}
+
+/*color*/
+.bg-green {
+  background-color: #79a617;
+}
+
+.btn.bg-green:hover {
+  background-color: white;
+  color: #79a617;
+  border: 1px solid #79a617;
+}
+
+.btn.btn-outline-green {
+  color: #79a617;
+  border: 1px solid #79a617;
+}
+.btn.btn-outline-green:hover {
+  background-color: #79a617;
+  color: white;
+}
+.btn.btn-outline-white {
+  color: white;
+  border: 1px solid white;
+}
+.btn.btn-outline-white:hover {
+  background-color: white;
+  color: #79a617;
+  border: 1px solid #79a617;
+}
+
+.green {
+  color: #79a617;
+}
+.black-green {
+  color: #516e11;
+}
+
+.white {
+  color: white;
+}
+
+/*header*/
+header {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  position: relative;
+  z-index: 10;
+}
+header .navbar {
+  padding: 1rem 0;
+  width: 80%;
+  margin: 0 auto;
+}
+
+.social-icons a {
+  color: #516e11;
+  font-size: 18px;
+  transition: color 0.4s ease, transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.social-icons a:hover {
+  color: #79a617;
+  transform: scale(1.2);
+}
+
+.nav-link {
+  color: #516e11;
+}
+
+.nav-link:hover,
+.nav-link.active {
+  color: #79a617;
+}
+
+/*footer*/
+
+footer {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  position: relative;
+  z-index: 10;
+}
+
+footer a {
+  color: #516e11;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+footer a:hover {
+  color: #79a617;
+  text-decoration: none;
+}
+
+footer .social-icons i {
+  font-size: 18px;
+  transition: color 0.3s ease, transform 0.3s ease;
+}
+
+footer .social-icons i:hover {
+  color: #79a617;
+  transform: scale(1.2);
+}
+/* Responsive adjustments */
+/* Default behavior for IMG1 (desktop and tablet) */
+.img1-responsive {
+  position: absolute;
+  bottom: -70px;
+  right: -30px;
+  width: 60%;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  z-index: 2;
+}
+
+.text-container {
+  height: 300px;
+}
+
+/* Responsive behavior for small screens */
+@media (max-width: 768px) {
+  .img1-responsive {
+    position: static; /* Remove absolute positioning */
+    margin-top: 20px; /* Add spacing above the image */
+    width: 100%; /* Full width */
+    box-shadow: none; /* Remove shadow for simplicity */
+    margin-bottom: 50px;
+  }
+
+  .text-container {
+    height: auto; /* Allow the container to adjust its height */
+  }
+}
+
+#services {
+  background-color: #7cdb9d60;
+  width: 95%;
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+  margin: 0 auto;
+}
+
+.titre-services {
+  font-weight: bold;
+  color: #516e11;
+}
+
+.txt-services {
+  font-size: 18px;
+  color: #516e11;
+  margin: 10px 0;
+}
+
+.img-services {
+  width: 250px;
+  height: auto;
+}
+
+.card-services {
+  border-radius: 10px;
+  background-color: white;
+  padding: 20px;
+  margin: 30px auto;
+  height: 300px;
+  width: 350px;
+}
+
+.link-services {
+  color: #e7581a;
+}
+
+#services a {
+  text-decoration: none;
+}
+
+.title-services {
+  width: 100%;
+  color: #79a617;
+  text-align: center;
+  padding: 10px 10px;
+  font-weight: bold;
+}
+
+.form-container {
+  min-height: 60vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.form-wrapper {
+  background-color: #f8f9fa;
+  border-radius: 10px;
+  padding: 2rem;
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+/*formulaire*/
+
+.input-group-text {
+  padding: 10.8px 12px;
+}
+.form-group {
+  margin: 10px 0px;
+}
+.btn-inscrire {
+  margin-top: 1.5rem;
+  background-color: #0d5298;
+  color: white;
+  width: 100%;
+}
+.btn-inscrire:hover {
+  color: #0d5298;
+  background-color: white;
+  border: 2px solid #0d5298;
+  width: 100%;
+}
+
+.form-control {
+  margin-bottom: 1rem;
+}
+
+.login-error {
+  color: #dc3545;
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+/* Carshare specific styles */
+.carshare-info p {
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.carshare-info strong {
+  color: #79a617;
+}
+
+.card {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.card-head {
+  background-color: #79a617;
+  color: white;
+  padding: 1rem;
+  margin: 0;
+  border-radius: 8px 8px 0 0;
+  font-size: 1.1rem;
+}
+
+.card-body {
+  padding: 1rem;
+}
+
+.card-foot {
+  padding: 1rem;
+  background-color: #f8f9fa;
+  border-radius: 0 0 8px 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: bold;
+  color: #79a617;
+}
+
+.btn-gallery {
+  background-color: #79a617;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  text-decoration: none;
+  font-size: 0.9rem;
+  transition: background-color 0.2s ease;
+}
+
+.btn-gallery:hover {
+  background-color: #5d7d0f;
+  color: white;
+}
+
+.gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+  padding: 2rem 0;
+}
+
+/* Fix for input-group alignment issues */
+.input-group .form-control {
+  height: calc(2.25rem + 2px);
+}
+
+.input-group .input-group-text {
+  height: calc(2.25rem + 2px);
+  padding: 0.375rem 0.75rem;
+  display: flex;
+  align-items: center;
+  border: 1px solid #ced4da;
+}
+
+/* Ensure consistent height for money input fields */
+.money-input-group .form-control,
+.money-input-group .input-group-text {
+  height: 38px;
+  line-height: 1.5;
+}
+
+/* Bootstrap input-group height fix */
+.input-group > .form-control,
+.input-group > .form-select,
+.input-group > .input-group-text {
+  height: auto;
+  min-height: calc(2.25rem + 2px);
+}
+
+.input-group-text {
+  font-size: 0.875rem;
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+/* Additional specific fixes for Bootstrap input-group euro symbol */
+.form-group .input-group {
+  display: flex;
+  align-items: stretch;
+}
+
+.form-group .input-group .form-control {
+  flex: 1;
+  border-radius: 0.25rem 0 0 0.25rem;
+  background-color: white;
+  border: 1px solid #ced4da;
+}
+
+.form-group .input-group .input-group-text {
+  border-radius: 0 0.25rem 0.25rem 0;
+  border-left: 0;
+  background-color: #e9ecef;
+  padding: 0.375rem 0.75rem;
+  margin-bottom: 0;
+  line-height: 1.5;
+  color: #495057;
+  text-align: center;
+  white-space: nowrap;
+  border: 1px solid #ced4da;
+  width: auto;
+  min-width: 45px;
+}
+
+/* Force consistent height for all form elements */
+.card-body .form-control {
+  height: 38px !important;
+  padding: 6px 12px;
+  background-color: white;
+  border: 1px solid #ced4da;
+}
+
+.card-body span.input-group-text {
+  height: 38px !important;
+  padding: 6px 12px;
+  background-color: #e9ecef;
+  border: 1px solid #ced4da;
+  border-radius: 10px;
+}
+
+label.input-group-text {
+  background-color: white;
+  border: none;
+  padding: 0px;
+  margin-bottom: 0.5rem;
+}
+
+/* Specific fix for money type in carshare forms */
+form[name="carshare"] .input-group .input-group-text {
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Account sidebar menu styling */
+.account-sidebar {
+  background-color: #fafafa;
+  border-radius: 8px;
+  padding: 1.5rem;
+  border: 1px solid #e9ecef;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.account-menu {
+  padding: 0;
+  margin: 0;
+}
+
+.account-menu .nav-item {
+  margin-bottom: 0.25rem;
+}
+
+.account-menu .nav-link {
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  color: #516e11;
+  font-weight: 500;
+  border: 1px solid transparent;
+  display: flex;
+  align-items: center;
+}
+
+.account-menu .nav-link:hover {
+  background-color: #f8f9fa;
+  color: #79a617;
+  border-color: #e9ecef;
+  text-decoration: none;
+}
+
+.account-menu .nav-link.active {
+  background-color: #79a617;
+  color: white;
+  border-color: #79a617;
+  box-shadow: 0 2px 4px rgba(121, 166, 23, 0.2);
+}
+
+.account-menu .nav-link i {
+  width: 20px;
+  text-align: center;
+  opacity: 0.8;
+}
+
+.account-menu .nav-link.active i {
+  opacity: 1;
+}
+
+.account-menu .badge {
+  font-size: 0.7rem;
+  padding: 0.25em 0.5em;
+}
+
+.account-menu small.nav-link {
+  font-size: 0.85rem;
+  padding: 0.5rem 1rem;
+  font-style: italic;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .account-sidebar {
+    margin-bottom: 1rem;
+    padding: 1rem;
+  }
+
+  .account-menu .nav-link {
+    padding: 0.6rem 0.8rem;
+    font-size: 0.9rem;
+  }
 }

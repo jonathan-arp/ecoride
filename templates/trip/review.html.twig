@@ -1,0 +1,123 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Évaluer le conducteur - EcoRide{% endblock %}
+
+{% block body %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-success text-white">
+                    <h2 class="mb-0">
+                        <i class="fas fa-star me-2"></i>
+                        Évaluer votre trajet
+                    </h2>
+                </div>
+                
+                <div class="card-body">
+                    <!-- Trip Information -->
+                    <div class="bg-light p-3 rounded mb-4">
+                        <h5 class="text-success mb-3">
+                            <i class="fas fa-route me-2"></i>
+                            {{ carshare.formattedRoute }}
+                        </h5>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p class="mb-1">
+                                    <i class="fas fa-calendar me-1"></i>
+                                    <strong>Date :</strong> {{ carshare.start|date('d/m/Y à H:i') }}
+                                </p>
+                                <p class="mb-0">
+                                    <i class="fas fa-users me-1"></i>
+                                    <strong>Passagers :</strong> {{ reservation.passengersCount }}
+                                </p>
+                            </div>
+                            <div class="col-md-6">
+                                <p class="mb-1">
+                                    <i class="fas fa-car me-1"></i>
+                                    <strong>Véhicule :</strong> {{ carshare.car.brand.content }} {{ carshare.car.model }}
+                                </p>
+                                <p class="mb-0">
+                                    <i class="fas fa-euro-sign me-1"></i>
+                                    <strong>Prix payé :</strong> {{ reservation.price|number_format(2) }} crédits
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Driver Information -->
+                    <div class="d-flex align-items-center mb-4">
+                        <div class="me-3">
+                            {% if driver.photo %}
+                                <img src="{{ asset('uploads/user_photos/' ~ driver.photo) }}" 
+                                     alt="Photo de {{ driver.firstname }}" 
+                                     class="rounded-circle" 
+                                     style="width: 60px; height: 60px; object-fit: cover;">
+                            {% else %}
+                                <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center text-white" 
+                                     style="width: 60px; height: 60px;">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <h5 class="mb-1">{{ driver.firstname }} {{ driver.lastname }}</h5>
+                            <div class="text-muted">
+                                {% if driver.averageRating %}
+                                    {% set rating = driver.averageRating %}
+                                    {% for i in 1..5 %}
+                                        {% if i <= rating %}
+                                            <i class="fas fa-star text-warning"></i>
+                                        {% elseif i - 0.5 <= rating %}
+                                            <i class="fas fa-star-half-alt text-warning"></i>
+                                        {% else %}
+                                            <i class="far fa-star text-warning"></i>
+                                        {% endif %}
+                                    {% endfor %}
+                                    <span class="ms-1">{{ rating|number_format(1) }}/5 ({{ driver.publishedReviewsCount }} avis)</span>
+                                {% else %}
+                                    <span class="text-muted">Nouveau conducteur</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Review Form -->
+                    {{ form_start(form, {'attr': {'class': 'review-form'}}) }}
+                        <div class="mb-4">
+                            {{ form_label(form.rating, null, {'label_attr': {'class': 'form-label fw-bold'}}) }}
+                            {{ form_widget(form.rating, {'attr': {'class': 'form-select form-select-lg'}}) }}
+                            {{ form_errors(form.rating) }}
+                        </div>
+
+                        <div class="mb-4">
+                            {{ form_label(form.comment, null, {'label_attr': {'class': 'form-label fw-bold'}}) }}
+                            {{ form_widget(form.comment) }}
+                            {{ form_errors(form.comment) }}
+                            {{ form_help(form.comment) }}
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="fas fa-check me-2"></i>
+                                Valider le trajet et publier l'évaluation
+                            </button>
+                            <a href="{{ path('app_reservations_index') }}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>
+                                Retour aux réservations
+                            </a>
+                        </div>
+                    {{ form_end(form) }}
+
+                    <div class="alert alert-info mt-4">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>À savoir :</strong> Votre évaluation sera soumise à modération avant publication. 
+                        Cette étape finalise votre trajet et déclenche le transfert des crédits.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

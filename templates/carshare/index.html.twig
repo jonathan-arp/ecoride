@@ -1,0 +1,24 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Covoiturage{% endblock %}
+
+{% block body %}
+<h1 class="text-center">Covoiturages</h1>
+<p class="text-center">Découvrez les offres de covoiturage disponibles.</p>
+
+{% if carshares is empty %}
+    <div class="alert alert-info text-center">
+        Aucune offre de covoiturage disponible pour le moment.
+    </div>
+{% endif %}
+
+
+
+<!-- Main carshares component -->
+<div {{ react_component('CarsharesFilter', {
+    carshares: carshares,
+    carshareUrlPattern: '/carshares/'
+}) }}></div>
+
+
+{% endblock %}

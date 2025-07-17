@@ -1,0 +1,121 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+{% if not app.user %}
+    <div class="container mt-5">
+        <div class="alert alert-warning text-center">
+            <h4><i class="fas fa-exclamation-triangle me-2"></i>Accès refusé</h4>
+            <p>Vous devez être connecté pour modifier un covoiturage.</p>
+            <a href="{{ path('app_login') }}" class="btn btn-primary">
+                <i class="fas fa-sign-in-alt me-2"></i>Se connecter
+            </a>
+        </div>
+    </div>
+{% else %}
+<h1 class="text-center mt-5">Modifier le trajet</h1>
+<div class="container my-5 d-flex flex-wrap justify-content-between">
+    
+    <div class="col-md-3 col-sm-12 mt-4">
+        {% include 'account/_menu.html.twig' %} 
+    </div>
+    
+    <div class="col-md-9 col-sm-12 mb-4">
+        <div class="card">
+            <div class="card-header bg-warning text-white">
+                <h4>
+                    <i class="fas fa-edit me-2"></i>Modifier le trajet
+                </h4>
+            </div>
+            <div class="card-body">
+                    {{ form_start(form, {
+                        'method': 'POST',
+                        'action': path('app_carshare_edit', {'id': carshare.id})
+                    }) }}
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                {{ form_label(form.start_location) }}
+                                {{ form_widget(form.start_location) }}
+                                {{ form_errors(form.start_location) }}
+                            </div>
+                            
+                            <div class="form-group mb-3">
+                                {{ form_label(form.start_detail) }}
+                                {{ form_widget(form.start_detail) }}
+                                {{ form_errors(form.start_detail) }}
+                            </div>
+                            
+                            <div class="form-group mb-3">
+                                {{ form_label(form.start) }}
+                                {{ form_widget(form.start) }}
+                                {{ form_errors(form.start) }}
+                            </div>
+                            
+                            <div class="form-group mb-3">
+                                {{ form_label(form.place) }}
+                                {{ form_widget(form.place) }}
+                                {{ form_errors(form.place) }}
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                {{ form_label(form.end_location) }}
+                                {{ form_widget(form.end_location) }}
+                                {{ form_errors(form.end_location) }}
+                            </div>
+                            
+                            <div class="form-group mb-3">
+                                {{ form_label(form.end_detail) }}
+                                {{ form_widget(form.end_detail) }}
+                                {{ form_errors(form.end_detail) }}
+                            </div>
+                            
+                            <div class="form-group mb-3">
+                                {{ form_label(form.end) }}
+                                {{ form_widget(form.end) }}
+                                {{ form_errors(form.end) }}
+                            </div>
+                            
+                            <div class="form-group mb-3">
+                                {{ form_label(form.price) }}
+                                {{ form_widget(form.price) }}
+                                {{ form_errors(form.price) }}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                {{ form_label(form.car) }}
+                                {{ form_widget(form.car) }}
+                                {{ form_errors(form.car) }}
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                {{ form_label(form.status) }}
+                                {{ form_widget(form.status) }}
+                                {{ form_errors(form.status) }}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between mt-4">
+                        <a href="{{ path('app_carshare_my') }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Retour
+                        </a>
+                        <button type="submit" class="btn btn-warning text-white">
+                            <i class="fas fa-save me-2"></i>Sauvegarder les modifications
+                        </button>
+                    </div>
+                    {{ form_end(form) }}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,133 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Photo de profil conducteur{% endblock %}
+
+{% block body %}
+{% for label, messages in app.flashes %}
+    <div class="container mt-3">
+        <div class="alert alert-{{ label == 'error' ? 'danger' : (label == 'success' ? 'success' : (label == 'warning' ? 'warning' : 'info')) }} alert-dismissible fade show" role="alert">
+            {% for message in messages %}
+                {{ message }}
+            {% endfor %}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    </div>
+{% endfor %}
+
+<div class="container my-5">
+    <div class="row">
+        <div class="col-md-3">
+            {% include 'account/_menu.html.twig' %}
+        </div>
+        <div class="col-md-9">
+            <div class="card shadow border-0">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="card-title mb-0">
+                        <i class="fas fa-camera me-2"></i>Photo de profil conducteur
+                    </h3>
+                </div>
+                
+                <div class="card-body p-4">
+                    <div class="row">
+                        <!-- Current Photo Display -->
+                        <div class="col-md-4">
+                            <div class="text-center mb-4">
+                                <h5 class="text-muted mb-3">Photo actuelle</h5>
+                                {% if user.photo %}
+                                    <img src="{{ asset('uploads/user_photos/' ~ user.photo) }}" 
+                                         alt="Photo de {{ user.firstname }}" 
+                                         class="img-fluid rounded-circle border border-3 border-primary shadow"
+                                         style="width: 150px; height: 150px; object-fit: cover;">
+                                    <p class="text-muted mt-2 small">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Cette photo sera visible par les passagers
+                                    </p>
+                                {% else %}
+                                    <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center border border-3 border-secondary"
+                                         style="width: 150px; height: 150px;">
+                                        <i class="fas fa-user text-secondary fs-1"></i>
+                                    </div>
+                                    <p class="text-muted mt-2">
+                                        <i class="fas fa-exclamation-triangle text-warning me-1"></i>
+                                        Aucune photo de profil
+                                    </p>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- Upload Form -->
+                        <div class="col-md-8">
+                            <h5 class="text-primary mb-3">
+                                <i class="fas fa-upload me-2"></i>Télécharger une nouvelle photo
+                            </h5>
+                            
+                            {{ form_start(form, {'attr': {'enctype': 'multipart/form-data', 'class': 'needs-validation', 'novalidate': 'novalidate'}}) }}
+                            
+                            <div class="mb-4">
+                                {{ form_label(form.photoFile, null, {'label_attr': {'class': 'form-label fw-bold'}}) }}
+                                {{ form_widget(form.photoFile, {'attr': {'class': 'form-control'}}) }}
+                                {{ form_errors(form.photoFile) }}
+                                
+                                <div class="form-text">
+                                    <i class="fas fa-info-circle text-info me-1"></i>
+                                    <strong>Formats acceptés :</strong> JPEG, PNG, GIF<br>
+                                    <strong>Taille maximale :</strong> 5 MB<br>
+                                    <strong>Recommandation :</strong> Photo carrée de bonne qualité pour un meilleur rendu
+                                </div>
+                            </div>
+                            
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-success">
+                                    <i class="fas fa-save me-2"></i>Enregistrer la photo
+                                </button>
+                            </div>
+                            
+                            {{ form_end(form) }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Info Card -->
+            <div class="card mt-4 border-info">
+                <div class="card-body">
+                    <h6 class="card-title text-info">
+                        <i class="fas fa-lightbulb me-2"></i>Pourquoi ajouter une photo ?
+                    </h6>
+                    <ul class="mb-0 small">
+                        <li>Augmente la confiance des passagers</li>
+                        <li>Facilite la reconnaissance lors des rendez-vous</li>
+                        <li>Améliore votre profil de conducteur</li>
+                        <li>Renforce la sécurité des covoiturages</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block stylesheets %}
+<style>
+.card {
+    transition: transform 0.2s ease-in-out;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+}
+
+.form-control:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+.btn {
+    transition: all 0.2s ease-in-out;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+}
+</style>
+{% endblock %}

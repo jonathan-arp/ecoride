@@ -1,0 +1,88 @@
+<aside class="account-sidebar mx-3">
+<ul id="menu" class="nav flex-column account-menu">
+
+    <li class="nav-item">
+        <a class="nav-link {% if app.request.attributes.get('_route') == 'app_account' %}active{% endif %}" href="{{ path('app_account') }}">Mon compte</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link {% if app.request.attributes.get('_route') == 'app_account_profile' %}active{% endif %}" href="{{ path('app_account_profile') }}">
+            <i class="fas fa-user me-2"></i>Mon profil
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link {% if app.request.attributes.get('_route') == 'app_account_modify_pwd' %}active{% endif %}" href="{{ path('app_account_modify_pwd') }}">
+            <i class="fas fa-key me-2"></i>Modifier mon mot de passe
+        </a>
+    </li>
+    
+    {% if app.user.canDrive() %}
+    <li class="nav-item">
+        <a class="nav-link {% if app.request.attributes.get('_route') == 'app_car_index' %}active{% endif %}" href="{{ path('app_car_index') }}">
+            <i class="fas fa-car me-2"></i>Mes véhicules
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link {% if app.request.attributes.get('_route') == 'app_driver_parameters' or app.request.attributes.get('_route') == 'app_driver_parameter_toggle' or app.request.attributes.get('_route') == 'app_driver_parameter_new' %}active{% endif %}" href="{{ path('app_driver_parameters') }}">Mes paramètres conducteur</a>
+    </li>
+    {% if app.user.cars|length > 0 %}
+    <li class="nav-item">
+        <a class="nav-link {% if app.request.attributes.get('_route') == 'app_driver_photo' %}active{% endif %}" href="{{ path('app_driver_photo') }}">
+            <i class="fas fa-camera me-2"></i>Photo de conducteur
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link {% if app.request.attributes.get('_route') == 'app_carshare_new' %}active{% endif %}" href="{{ path('app_carshare_new') }}">
+            <i class="fas fa-plus me-2"></i>Créer un covoiturage
+        </a>
+    </li>
+    {% endif %}
+    <li class="nav-item">
+        <a class="nav-link {% if app.request.attributes.get('_route') == 'app_carshare_my' %}active{% endif %}" href="{{ path('app_carshare_my') }}">
+            <i class="fas fa-list me-2"></i>Mes covoiturages
+        </a>
+    </li>
+    {% endif %}
+    
+    <!-- Section Crédits et Réservations - TOUJOURS VISIBLE -->
+    <li class="nav-item">
+        <a class="nav-link {% if app.request.attributes.get('_route') starts with 'app_credits' %}active{% endif %}" href="{{ path('app_credits_index') }}">
+            <i class="fas fa-coins me-2"></i>Mes crédits <span class="badge bg-primary ms-1">{{ app.user.creditBalance|number_format(0) }}</span>
+        </a>
+    </li>
+    
+    {% if app.user.canBePassenger() %}
+    <li class="nav-item">
+        <a class="nav-link {% if app.request.attributes.get('_route') == 'app_reservations_index' %}active{% endif %}" href="{{ path('app_reservations_index') }}">
+            <i class="fas fa-bookmark me-2"></i>Mes réservations
+        </a>
+    </li>
+    {% endif %}
+    
+    {% if not app.user.canDrive() and app.user.canBePassenger() %}
+    <li class="nav-item">
+        <small class="nav-link text-muted">
+            <i class="fas fa-info-circle me-2"></i>
+            Vous êtes passager uniquement
+        </small>
+    </li>
+    {% endif %}
+
+    {% if is_granted('ROLE_ADMIN') or is_granted('ROLE_EMPLOYEE') %}
+
+        <li class="nav-item mt-3">
+            <a class="nav-link btn btn-outline-primary text-start" href="{{ path('admin') }}">
+                <i class="fas fa-shield-alt me-2"></i>Administration
+            </a>
+        </li>
+        
+
+    {% endif %}
+
+    <li class="nav-item mt-4 pt-2 border-top">
+        <a class="nav-link text-danger" href="{{ path('app_logout') }}">
+            <i class="fas fa-sign-out-alt me-2"></i>Me déconnecter
+        </a>
+    </li>
+
+</ul>
+</aside>

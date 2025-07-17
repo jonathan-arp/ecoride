@@ -1,0 +1,193 @@
+# Redirection HTTP vers HTTPS (sera supprimée pour le test initial)
+# server {
+#     listen 80;
+#     listen [::]:80;
+#     server_name ecoride.horizonduweb.fr www.ecoride.horizonduweb.fr;
+#     return 301 https://$server_name$request_uri;
+# }
+
+# Configuration HTTP pour Symfony 7 - EcoRide
+# HTTPS sera ajouté par Certbot après installation
+server {
+    server_name ecoride.horizonduweb.fr www.ecoride.horizonduweb.fr;
+
+    root /var/www/ecoride.horizonduweb.fr/public;
+    index index.php;
+
+    # Configuration principale Symfony
+    location / {
+        try_files $uri /index.php$is_args$args;
+    }
+
+    # Configuration PHP-FPM pour Symfony 7
+    location ~ ^/index\.php(/|$) {
+        fastcgi_pass unix:/var/run/php/php8.3-fpm.sock;
+        fastcgi_split_path_info ^(.+\.php)(/.*)$;
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
+        fastcgi_param DOCUMENT_ROOT $realpath_root;
+
+        # Optimisations pour Symfony
+        fastcgi_buffer_size 128k;
+        fastcgi_buffers 4 256k;
+        fastcgi_busy_buffers_size 256k;
+        fastcgi_read_timeout 60s;
+
+        # Sécurité
+        internal;
+    }
+
+    # Cache pour assets statiques (images de profil, véhicules, etc.)
+    location ~* \.(css|js|jpg|jpeg|png|gif|ico|svg|woff|woff2|ttf|eot|webp)$ {
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+        add_header Vary "Accept-Encoding";
+        try_files $uri /index.php$is_args$args;
+    }
+
+    # Cache pour bundles Symfony
+    location /bundles {
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+        try_files $uri =404;
+    }
+
+    # Cache pour uploads (photos de profil, véhicules)
+    location /uploads {
+        expires 30d;
+        add_header Cache-Control "public";
+    }
+
+    # Pas de cache pour admin EasyAdmin
+    location /admin {
+        try_files $uri /index.php$is_args$args;
+        add_header Cache-Control "no-cache, no-store, must-revalidate";
+    }
+
+    # Pas de cache pour API (si utilisée)
+    location /api {
+        try_files $uri /index.php$is_args$args;
+        add_header Cache-Control "no-cache, no-store, must-revalidate";
+    }
+
+    # Pas de cache pour les pages account (session sensible)
+    location /account {
+        try_files $uri /index.php$is_args$args;
+        add_header Cache-Control "no-cache, no-store, must-revalidate";
+    }
+
+    # Pas de cache pour les pages driver (session sensible)
+    location /driver {
+        try_files $uri /index.php$is_args$args;
+        add_header Cache-Control "no-cache, no-store, must-revalidate";
+    }
+
+    # Pas de cache pour les transactions et crédits
+    location /credit {
+        try_files $uri /index.php$is_args$args;
+        add_header Cache-Control "no-cache, no-store, must-revalidate";
+    }
+
+    # Pas de cache pour les trajets et réservations
+    location /carshare {
+        try_files $uri /index.php$is_args$args;
+        add_header Cache-Control "no-cache, no-store, must-revalidate";
+    }
+
+    location /trip {
+        try_files $uri /index.php$is_args$args;
+        add_header Cache-Control "no-cache, no-store, must-revalidate";
+    }
+
+    # Bloquer autres fichiers PHP
+    location ~ \.php$ {
+        return 404;
+    }
+
+    # Sécurité - Fichiers sensibles
+    location ~ /\.env {
+        deny all;
+        return 404;
+    }
+
+    location ~ /\.env\.local {
+        deny all;
+        return 404;
+    }
+
+    location ~ /composer\.(json|lock)$ {
+        deny all;
+        return 404;
+    }
+
+    location ~ /symfony\.lock$ {
+        deny all;
+        return 404;
+    }
+
+    location ~ /package\.(json|lock)$ {
+        deny all;
+        return 404;
+    }
+
+    location ~ /webpack\.config\.js$ {
+        deny all;
+        return 404;
+    }
+
+    location ~ ^/(var|vendor|config|src|tests|migrations|assets|node_modules)/ {
+        deny all;
+        return 404;
+    }
+
+    # En-têtes de sécurité pour plateforme de covoiturage (sans HTTPS pour le test initial)
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+
+    # Logs spécifiques à EcoRide (avec debug pour erreur 500)
+    error_log /var/log/nginx/ecoride_error.log debug;
+    access_log /var/log/nginx/ecoride_access.log;
+
+    # Optimisations de performance pour upload de photos
+    client_max_body_size 50M;
+    client_body_buffer_size 128k;
+    client_header_buffer_size 3m;
+    large_client_header_buffers 4 256k;
+
+    # Timeout optimisé pour les sessions longues
+    fastcgi_connect_timeout 60s;
+    fastcgi_send_timeout 60s;
+    fastcgi_read_timeout 60s;
+
+    listen [::]:443 ssl; # managed by Certbot
+    listen 443 ssl; # managed by Certbot
+    ssl_certificate /etc/letsencrypt/live/ecoride.horizonduweb.fr/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/ecoride.horizonduweb.fr/privkey.pem; # managed by Certbot
+    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+
+
+}
+
+server {
+    if ($host = www.ecoride.horizonduweb.fr) {
+        return 301 https://$host$request_uri;
+    } # managed by Certbot
+
+
+    if ($host = ecoride.horizonduweb.fr) {
+        return 301 https://$host$request_uri;
+    } # managed by Certbot
+
+
+    listen 80;
+    listen [::]:80;
+    server_name ecoride.horizonduweb.fr www.ecoride.horizonduweb.fr;
+    return 404; # managed by Certbot
+
+
+
+
+}

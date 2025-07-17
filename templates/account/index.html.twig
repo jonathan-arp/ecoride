@@ -1,0 +1,160 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+{% if not app.user %}
+    <div class="container mt-5">
+        <div class="alert alert-warning text-center">
+            <h4><i class="fas fa-exclamation-triangle me-2"></i>Accès refusé</h4>
+            <p>Vous devez être connecté pour accéder à votre compte.</p>
+            <a href="{{ path('app_login') }}" class="btn btn-primary">
+                <i class="fas fa-sign-in-alt me-2"></i>Se connecter
+            </a>
+        </div>
+    </div>
+{% else %}
+<h1 class="text-center mt-5">Mon compte</h1>
+<div class="container my-5 d-flex flex-wrap justify-content-between">
+    
+    <div class = "col-md-3 col-sm-12 mt-4">
+    {% include 'account/_menu.html.twig' %} 
+    </div>
+    <div class="col-md-9 col-sm-12 mb-4">
+        <div class="card " id="card-account">
+            <div class="card-header bg-gold">
+                <h4>Mes informations personnelles</h4>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                    <h5>Moi-même</h5>
+                        <div class="mb-2">
+                            <span class="data-label">Nom:</span> {{ app.user.lastname }}
+                        </div>
+                        <div class="mb-2">
+                            <span class="data-label">Prénom:</span> {{ app.user.firstname }}
+                        </div>
+                        <div class="mb-2">
+                            <span class="data-label">Email:</span> {{ app.user.email }}
+                        </div>
+                        <div class="mb-2">
+                            <span class="data-label">Rôle:</span> 
+                            {% if app.user.fonction %}
+                                <span class="badge bg-success">{{ app.user.fonction.name }}</span>
+                                {% if app.user.canDrive() and app.user.canBePassenger() %}
+                                    <small class="text-muted d-block">Peut être conducteur et passager</small>
+                                {% elseif app.user.canDrive() %}
+                                    <small class="text-muted d-block">Peut être conducteur uniquement</small>
+                                {% elseif app.user.canBePassenger() %}
+                                    <small class="text-muted d-block">Peut être passager uniquement</small>
+                                {% endif %}
+                            {% else %}
+                                <span class="badge bg-warning">Non défini</span>
+                                <div class="mt-1">
+                                    <a href="{{ path('app_account_profile') }}" class="btn btn-outline-warning btn-sm">
+                                        <i class="fas fa-exclamation-triangle me-1"></i>
+                                        Définir mon rôle
+                                    </a>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Driver Photo Section -->
+                    {% if app.user.cars|length > 0 %}
+                    <div class="col-md-6">
+                        <h5>Photo de conducteur</h5>
+                        <div class="text-center mb-3">
+                            {% if app.user.photo %}
+                                <img src="{{ asset('uploads/user_photos/' ~ app.user.photo) }}" 
+                                     alt="Photo de {{ app.user.firstname }}" 
+                                     class="rounded-circle border border-2 border-primary"
+                                     style="width: 80px; height: 80px; object-fit: cover;">
+                                <p class="text-success small mt-1">
+                                    <i class="fas fa-check-circle me-1"></i>Photo ajoutée
+                                </p>
+                            {% else %}
+                                <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center border border-2 border-secondary"
+                                     style="width: 80px; height: 80px;">
+                                    <i class="fas fa-user text-secondary fs-4"></i>
+                                </div>
+                                <p class="text-warning small mt-1">
+                                    <i class="fas fa-exclamation-triangle me-1"></i>Aucune photo
+                                </p>
+                            {% endif %}
+                        </div>
+                        <a href="{{ path('app_driver_photo') }}" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-camera me-1"></i>
+                            {{ app.user.photo ? 'Modifier' : 'Ajouter' }} ma photo
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Driver Rating Section -->
+                {% if app.user.canDrive() %}
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <h5>Ma réputation de conducteur</h5>
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                {% if averageRating %}
+                                    <div class="row align-items-center">
+                                        <div class="col-md-6">
+                                            <div class="d-flex align-items-center">
+                                                {% set rating = averageRating %}
+                                                {% for i in 1..5 %}
+                                                    {% if i <= rating %}
+                                                        <i class="fas fa-star text-warning fs-4"></i>
+                                                    {% elseif i - 0.5 <= rating %}
+                                                        <i class="fas fa-star-half-alt text-warning fs-4"></i>
+                                                    {% else %}
+                                                        <i class="far fa-star text-warning fs-4"></i>
+                                                    {% endif %}
+                                                {% endfor %}
+                                                <span class="fs-4 fw-bold ms-2">{{ rating|number_format(1) }}/5</span>
+                                            </div>
+                                            <p class="text-muted mb-0">{{ reviewsCount }} avis publié{{ reviewsCount > 1 ? 's' : '' }}</p>
+                                        </div>
+                                        <div class="col-md-6 text-end">
+                                            <a href="{{ path('app_driver_reviews', {'id': app.user.id}) }}" class="btn btn-outline-primary">
+                                                <i class="fas fa-comments me-2"></i>Voir mes avis
+                                            </a>
+                                        </div>
+                                    </div>
+                                {% else %}
+                                    <div class="text-center text-muted">
+                                        <i class="fas fa-star-o fa-2x mb-2"></i>
+                                        <p class="mb-0">Aucun avis reçu pour le moment</p>
+                                        <small>Vos futurs passagers pourront vous évaluer après chaque trajet</small>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if 'ROLE_ADMIN' in app.user.roles or 'ROLE_EMPLOYEE' in app.user.roles %}
+                <div class="mt-2">
+                    <a href="{{ path('admin')}}" class="btn btn-outline-success mb-5">
+                        <i class="fas fa-cogs me-2"></i>Administration
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+            <div class="card-footer bg-white">
+                <div class="d-flex flex-wrap justify-content-between">
+                    <a href="{{ path('app_account_modify_pwd') }}" class="btn btn-outline-primary mb-2 mb-md-0">
+                        <i class="fas fa-key me-2"></i>Modifier mot de passe
+                    </a>
+                    
+                    <a href="{{ path('app_logout') }}" class="btn btn-outline-danger">
+                        <i class="fas fa-sign-out-alt me-2"></i>Déconnexion
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

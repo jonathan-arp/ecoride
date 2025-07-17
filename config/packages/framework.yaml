@@ -1,16 +1,31 @@
 # see https://symfony.com/doc/current/reference/configuration/framework.html
 framework:
-    secret: '%env(APP_SECRET)%'
-    #csrf_protection: true
+  secret: "%env(APP_SECRET)%"
+  csrf_protection: true
 
-    # Note that the session will be started ONLY if you read or write from it.
-    session: true
+  # Note that the session will be started ONLY if you read or write from it.
+  session:
+    # Using file-based session storage for stability (default behavior)
+    # Increase session lifetime to 8 hours
+    cookie_lifetime: 28800 # Durée du cookie de session (en secondes, ici 8h)
+    # Keep session active for 8 hours of inactivity
+    gc_maxlifetime: 28800 # Durée max avant nettoyage (8h)
+    # Use more secure session settings
+    cookie_secure: auto # Utilise HTTPS si disponible
+    cookie_httponly: true # Empêche l'accès JS au cookie
+    cookie_samesite: lax # Protection contre CSRF
+    name: "ECORIDESESSID" # Nom personnalisé du cookie de session
 
-    #esi: true
-    #fragments: true
+  # Set timezone for Europe/Paris (France)
+  default_locale: fr
+  translator:
+    { default_path: "%kernel.project_dir%/translations", fallbacks: ["fr"] }
+
+  #esi: true
+  #fragments: true
 
 when@test:
-    framework:
-        test: true
-        session:
-            storage_factory_id: session.storage.factory.mock_file
+  framework:
+    test: true
+    session:
+      storage_factory_id: session.storage.factory.mock_file
