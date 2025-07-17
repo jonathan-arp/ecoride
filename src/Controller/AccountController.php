@@ -59,9 +59,6 @@ final class AccountController extends AbstractController
         // Calcul du nombre d'avis publiés
         $reviewsCount = method_exists($freshUser, 'getPublishedReviewsCount') ? $freshUser->getPublishedReviewsCount() : 0;
 
-        // NOTE: Ne jamais détacher l'entité User car cela peut affecter la session de sécurité
-        // $this->entityManager->detach($freshUser);
-
         return $this->render('account/index.html.twig', [
             'controller_name' => 'AccountController',
             'user' => $freshUser,
@@ -112,9 +109,6 @@ final class AccountController extends AbstractController
                 $this->addFlash('success', 'Votre mot de passe a été modifié avec succès');
                 return $this->redirectToRoute('app_account');
             }
-            
-            // NOTE: Ne jamais détacher l'entité User car cela peut affecter la session de sécurité
-            // $this->entityManager->detach($freshUser);
             
             return $this->render('account/password.html.twig', ['modifyPwdForm' => $form->createView()]);
         } catch (\Exception $e) {
@@ -170,9 +164,6 @@ final class AccountController extends AbstractController
                 $this->addFlash('success', 'Votre profil a été modifié avec succès');
                 return $this->redirectToRoute('app_account');
             }
-
-            // NOTE: Ne jamais détacher l'entité User car cela peut affecter la session de sécurité
-            // $this->entityManager->detach($freshUser);
 
             return $this->render('account/profile.html.twig', [
                 'profileForm' => $form->createView(),

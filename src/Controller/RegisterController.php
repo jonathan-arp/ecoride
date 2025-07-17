@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\User;
+use App\Entity\Credit;
 use App\Form\RegisterUserType;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -33,11 +34,22 @@ final class RegisterController extends AbstractController
                 // Set default photo
                 $user->setPhoto('default.jpg');
                 
-                // Save the user
+                // Save the user first
                 $entityManager->persist($user);
                 $entityManager->flush();
                 
-                $this->addFlash('success', 'Votre compte a été créé avec succès ! Vous pouvez maintenant vous connecter.');
+                // Create welcome credit of 20 credits
+                $welcomeCredit = new Credit();
+                $welcomeCredit->setUser($user);
+                $welcomeCredit->setAmount(20.0);
+                $welcomeCredit->setType('WELCOME');
+                $welcomeCredit->setDescription('Crédits de bienvenue');
+                
+                // Save the welcome credit
+                $entityManager->persist($welcomeCredit);
+                $entityManager->flush();
+                
+                $this->addFlash('success', 'Votre compte a été créé avec succès ! Vous avez reçu 20 crédits de bienvenue. Vous pouvez maintenant vous connecter.');
                 
                 // Redirect to avoid Turbo form submission error
                 return $this->redirectToRoute('app_login');

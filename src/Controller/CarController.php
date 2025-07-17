@@ -40,9 +40,6 @@ final class CarController extends AbstractController
 
         $cars = $this->carRepository->findBy(['user' => $freshUser]);
 
-        // DÃ©tacher l'entitÃ© pour Ã©viter les conflits lors de navigation rapide
-        // NOTE: Ne jamais détacher l'entité User car cela peut affecter la session de sécurité`r`n        // $this->entityManager->detach($freshUser);
-
         return $this->render('car/index.html.twig', [
             'cars' => $cars,
         ]);
@@ -80,9 +77,6 @@ final class CarController extends AbstractController
             $this->addFlash('success', 'Votre vÃ©hicule a Ã©tÃ© ajoutÃ© avec succÃ¨s !');
             return $this->redirectToRoute('app_car_index');
         }
-
-        // DÃ©tacher l'entitÃ© pour Ã©viter les conflits
-        // NOTE: Ne jamais détacher l'entité User car cela peut affecter la session de sécurité`r`n        // $this->entityManager->detach($freshUser);
 
         return $this->render('car/new.html.twig', [
             'car' => $car,

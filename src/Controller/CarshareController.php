@@ -215,8 +215,6 @@ class CarshareController extends AbstractController
         // VÃ©rifier si l'utilisateur a au moins une voiture
         if ($freshUser->getCars()->isEmpty()) {
             $this->addFlash('error', 'Vous devez d\'abord ajouter une voiture pour crÃ©er un covoiturage.');
-            // DÃ©tacher l'entitÃ© pour Ã©viter les problÃ¨mes de navigation rapide
-            // NOTE: Ne jamais détacher l'entité User car cela peut affecter la session de sécurité`r`n        // $this->entityManager->detach($freshUser);
             return $this->redirectToRoute('app_car_new');
         }
         
@@ -232,9 +230,6 @@ class CarshareController extends AbstractController
 
             $this->addFlash('success', 'Votre covoiturage a Ã©tÃ© crÃ©Ã© avec succÃ¨s !');
             
-            // DÃ©tacher l'entitÃ© pour Ã©viter les problÃ¨mes de navigation rapide
-            // NOTE: Ne jamais détacher l'entité User car cela peut affecter la session de sécurité`r`n        // $this->entityManager->detach($freshUser);
-            
             return $this->redirectToRoute('app_carshare_by_id', ['id' => $carshare->getId()]);
         }
 
@@ -242,16 +237,6 @@ class CarshareController extends AbstractController
         $response = $this->render('carshare/new.html.twig', [
             'form' => $form->createView(),
         ]);
-
-        // Set proper status code for form errors
-        if ($form->isSubmitted() && !$form->isValid()) {
-            $response->setStatusCode(422); // Unprocessable Entity
-        }
-
-        // DÃ©tacher l'entitÃ© pour Ã©viter les problÃ¨mes de navigation rapide
-        // NOTE: Ne jamais détacher l'entité User car cela peut affecter la session de sécurité`r`n        // $this->entityManager->detach($freshUser);
-
-        return $response;
 
         // Set proper status code for form errors
         if ($form->isSubmitted() && !$form->isValid()) {
@@ -289,9 +274,6 @@ class CarshareController extends AbstractController
             // Check and mark expired carshares
             // $this->checkAndMarkExpiredCarshares($asDriver);
         }
-
-        // DÃ©tacher l'entitÃ© pour Ã©viter les problÃ¨mes de navigation rapide
-        // NOTE: Ne jamais détacher l'entité User car cela peut affecter la session de sécurité`r`n        // $this->entityManager->detach($freshUser);
 
         return $this->render('carshare/my_carshares.html.twig', [
             'asDriver' => $asDriver,

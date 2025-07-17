@@ -40,9 +40,6 @@ class DriverController extends AbstractController
         $userParameters = $freshUser->getParameters();
         $allParameters = $parameterRepository->findAll();
 
-        // NOTE: Ne jamais détacher l'entité User car cela peut affecter la session de sécurité
-        // // NOTE: Ne jamais d�tacher l'entit� User car cela peut affecter la session de s�curit�`r`n        // $this->entityManager->detach($freshUser);
-
         return $this->render('account/driver/parameters.html.twig', [
             'userParameters' => $userParameters,
             'allParameters' => $allParameters,
@@ -76,9 +73,6 @@ class DriverController extends AbstractController
 
         $entityManager->flush();
         
-        // Détacher l'entité pour éviter les problèmes de navigation rapide
-        // NOTE: Ne jamais d�tacher l'entit� User car cela peut affecter la session de s�curit�`r`n        // $this->entityManager->detach($freshUser);
-
         return $this->redirectToRoute('app_driver_parameters');
     }
 
@@ -113,9 +107,6 @@ class DriverController extends AbstractController
 
             $this->addFlash('success', 'Nouveau paramètre "' . $parameter->getName() . '" créé et ajouté à vos préférences.');
 
-            // Détacher l'entité pour éviter les problèmes de navigation rapide
-            // NOTE: Ne jamais d�tacher l'entit� User car cela peut affecter la session de s�curit�`r`n        // $this->entityManager->detach($freshUser);
-
             return $this->redirectToRoute('app_driver_parameters');
         }
 
@@ -145,8 +136,6 @@ class DriverController extends AbstractController
         // Check if user has at least one car
         if ($freshUser->getCars()->isEmpty()) {
             $this->addFlash('warning', 'Vous devez d\'abord enregistrer un véhicule pour accéder à cette fonctionnalité.');
-            // Détacher l'entité pour éviter les problèmes de navigation rapide
-            // NOTE: Ne jamais d�tacher l'entit� User car cela peut affecter la session de s�curit�`r`n        // $this->entityManager->detach($freshUser);
             return $this->redirectToRoute('app_car_new');
         }
 
@@ -160,25 +149,15 @@ class DriverController extends AbstractController
                     $entityManager->flush();
                     $this->addFlash('success', 'Votre photo de profil a été mise à jour avec succès.');
                     
-                    // Détacher l'entité pour éviter les problèmes de navigation rapide
-                    // NOTE: Ne jamais d�tacher l'entit� User car cela peut affecter la session de s�curit�`r`n        // $this->entityManager->detach($freshUser);
-                    
                     // Redirect to avoid Turbo form submission error and clear any potential serialization issues
                     return $this->redirectToRoute('app_driver_photo');
                 } catch (\Exception $e) {
                     $this->addFlash('error', 'Une erreur est survenue lors de l\'upload : ' . $e->getMessage());
-                    // Détacher l'entité pour éviter les problèmes de navigation rapide
-                    // NOTE: Ne jamais d�tacher l'entit� User car cela peut affecter la session de s�curit�`r`n        // $this->entityManager->detach($freshUser);
                 }
             } else {
                 $this->addFlash('error', 'Veuillez corriger les erreurs dans le formulaire.');
-                // Détacher l'entité pour éviter les problèmes de navigation rapide
-                // NOTE: Ne jamais d�tacher l'entit� User car cela peut affecter la session de s�curit�`r`n        // $this->entityManager->detach($freshUser);
             }
         }
-
-        // Détacher l'entité pour éviter les problèmes de navigation rapide
-        // NOTE: Ne jamais d�tacher l'entit� User car cela peut affecter la session de s�curit�`r`n        // $this->entityManager->detach($freshUser);
 
         return $this->render('account/driver/photo.html.twig', [
             'form' => $form->createView(),

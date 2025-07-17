@@ -422,7 +422,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      */
     public function canBePassenger(): bool
     {
-        return $this->fonction && $this->fonction->canBePassenger();
+        return $this->fonction && $this->fonction->canBePassenger() === true;
     }
 
     /**

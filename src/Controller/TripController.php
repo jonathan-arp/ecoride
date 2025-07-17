@@ -103,16 +103,12 @@ class TripController extends AbstractController
 
         if (!$reservation->canBeValidated()) {
             $this->addFlash('error', 'Ce trajet ne peut pas encore Ãªtre Ã©valuÃ©.');
-            // DÃ©tacher l'entitÃ© pour Ã©viter les problÃ¨mes de navigation rapide
-            // NOTE: Ne jamais détacher l'entité User car cela peut affecter la session de sécurité`r`n        // $this->entityManager->detach($freshUser);
             return $this->redirectToRoute('app_reservations_index');
         }
 
         // Check if user has already reviewed this carshare
         if ($reviewRepository->hasPassengerReviewedCarshare($freshUser, $reservation->getCarshare()->getId())) {
             $this->addFlash('error', 'Vous avez dÃ©jÃ  Ã©valuÃ© ce conducteur pour ce trajet.');
-            // DÃ©tacher l'entitÃ© pour Ã©viter les problÃ¨mes de navigation rapide
-            // NOTE: Ne jamais détacher l'entité User car cela peut affecter la session de sécurité`r`n        // $this->entityManager->detach($freshUser);
             return $this->redirectToRoute('app_reservations_index');
         }
 
@@ -173,14 +169,8 @@ class TripController extends AbstractController
 
             $this->entityManager->flush();
             
-            // DÃ©tacher l'entitÃ© pour Ã©viter les problÃ¨mes de navigation rapide
-            // NOTE: Ne jamais détacher l'entité User car cela peut affecter la session de sécurité`r`n        // $this->entityManager->detach($freshUser);
-            
             return $this->redirectToRoute('app_reservations_index');
         }
-
-        // DÃ©tacher l'entitÃ© pour Ã©viter les problÃ¨mes de navigation rapide
-        // NOTE: Ne jamais détacher l'entité User car cela peut affecter la session de sécurité`r`n        // $this->entityManager->detach($freshUser);
 
         return $this->render('trip/review.html.twig', [
             'reservation' => $reservation,
