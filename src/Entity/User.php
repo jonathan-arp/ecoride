@@ -384,17 +384,31 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     }
 
     /**
-     * Ensures that the photoFile property is not serialized (which would cause issues)
+     * Ensures that only essential properties are serialized for session storage
+     * This prevents session corruption and improves performance
      */
     public function __sleep(): array
     {
-        // Get all properties except photoFile
-        $properties = array_keys(get_object_vars($this));
-        
-        // Remove photoFile as it cannot be serialized
-        return array_filter($properties, function($property) {
-            return $property !== 'photoFile';
-        });
+        // Only serialize essential properties needed for authentication and basic user info
+        return [
+            'id', 'email', 'roles', 'password', 
+            'firstname', 'lastname', 'surname', 
+            'phone', 'address', 'birthday', 'photo', 'fonction'
+        ];
+    }
+
+    /**
+     * Reinitialize collections after deserialization
+     */
+    public function __wakeup(): void
+    {
+        $this->cars = new ArrayCollection();
+        $this->carshares = new ArrayCollection();
+        $this->credits = new ArrayCollection();
+        $this->reservations = new ArrayCollection();
+        $this->parameters = new ArrayCollection();
+        $this->receivedReviews = new ArrayCollection();
+        $this->givenReviews = new ArrayCollection();
     }
 
     public function getFonction(): ?Fonction
