@@ -4,25 +4,23 @@ namespace App\Controller\Admin;
 
 use App\Entity\User;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
-use EasyCorp\Bundle\EasyAdminBundle\Field\DateTimeField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\EmailField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\ChoiceField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\DateField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\BooleanField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
-use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
-use EasyCorp\Bundle\EasyAdminBundle\Field\ChoiceField;
-use EasyCorp\Bundle\EasyAdminBundle\Field\FormField;
-use EasyCorp\Bundle\EasyAdminBundle\Field\ImageField;
-use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
-use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
-use EasyCorp\Bundle\EasyAdminBundle\Field\BooleanField;
-use Vich\UploaderBundle\Form\Type\VichImageType;
 use Doctrine\ORM\QueryBuilder;
 use EasyCorp\Bundle\EasyAdminBundle\Collection\FieldCollection;
 use EasyCorp\Bundle\EasyAdminBundle\Collection\FilterCollection;
 use EasyCorp\Bundle\EasyAdminBundle\Dto\EntityDto;
 use EasyCorp\Bundle\EasyAdminBundle\Dto\SearchDto;
 
-class UserCrudController extends AbstractCrudController
+class EmployeeCrudController extends AbstractCrudController
 {
     public static function getEntityFqcn(): string
     {
@@ -32,8 +30,8 @@ class UserCrudController extends AbstractCrudController
     public function configureCrud(Crud $crud): Crud
     {
         return $crud
-            ->setEntityLabelInSingular('Utilisateur')
-            ->setEntityLabelInPlural('Utilisateurs')
+            ->setEntityLabelInSingular('Employé')
+            ->setEntityLabelInPlural('Employés')
             ->setSearchFields(['firstname', 'lastname', 'email', 'phone'])
             ->setDefaultSort(['lastname' => 'ASC'])
             ->setPaginatorPageSize(20);
@@ -41,14 +39,12 @@ class UserCrudController extends AbstractCrudController
 
     public function createIndexQueryBuilder(SearchDto $searchDto, EntityDto $entityDto, FieldCollection $fields, FilterCollection $filters): QueryBuilder
     {
-        // Ne montrer que les utilisateurs normaux (pas les employés)
+        // Ne montrer que les employés (ROLE_EMPLOYEE)
         $queryBuilder = parent::createIndexQueryBuilder($searchDto, $entityDto, $fields, $filters);
         
         return $queryBuilder
-            ->andWhere('entity.roles NOT LIKE :adminRole')
-            ->andWhere('entity.roles NOT LIKE :employeeRole')
-            ->setParameter('adminRole', '%ROLE_ADMIN%')
-            ->setParameter('employeeRole', '%ROLE_EMPLOYEE%');
+            ->andWhere('entity.roles LIKE :role')
+            ->setParameter('role', '%ROLE_EMPLOYEE%');
     }
 
     public function configureActions(Actions $actions): Actions
@@ -68,55 +64,33 @@ class UserCrudController extends AbstractCrudController
             });
 
         return $actions
-            ->disable(Action::NEW)
             ->add(Crud::PAGE_INDEX, $suspendAction)
             ->add(Crud::PAGE_INDEX, $unsuspendAction)
             ->add(Crud::PAGE_DETAIL, $suspendAction)
             ->add(Crud::PAGE_DETAIL, $unsuspendAction);
     }
 
-    
     public function configureFields(string $pageName): iterable
     {
         return [
-            IdField::new('id')->onlyOnIndex(),
+            IdField::new('id')->hideOnForm(),
             TextField::new('lastname', 'Nom'),
             TextField::new('firstname', 'Prénom'),
-            TextField::new('surname', 'Pseudo'),
-            TextField::new('email', 'Email'),
+            TextField::new('surname', 'Surnom'),
+            EmailField::new('email', 'Email'),
             TextField::new('phone', 'Téléphone'),
             TextField::new('address', 'Adresse'),
-            
-            DateTimeField::new('birthday', 'Date de naissance')
-                ->setFormTypeOptions([
-                    'widget' => 'single_text',
-                    'html5' => true,
-                    'required' => false,
-                ])
-                ->setFormat('yyyy-MM-dd')
-                ->hideOnIndex(),
-            
-            FormField::addPanel('Photo')->onlyOnForms(),
-            TextField::new('photoFile', 'Télécharger Photo')
-                ->setFormType(VichImageType::class)
-                ->onlyOnForms(),
-                
-            ImageField::new('photo', 'Photo')
-                ->setBasePath('/uploads/user_photos/')
-                ->onlyOnIndex(),
-            
-            FormField::addPanel('Paramètres et rôles')->onlyOnForms(),
-            AssociationField::new('parameters', 'Paramètres')
-                ->onlyOnForms(),
-            
+            DateField::new('birthday', 'Date de naissance'),
+            AssociationField::new('fonction', 'Fonction'),
             ChoiceField::new('roles', 'Rôles')
                 ->setChoices([
-                    'Utilisateur' => 'ROLE_USER',
+                    'Employé' => 'ROLE_EMPLOYEE',
+                    'Administrateur' => 'ROLE_ADMIN',
                     'Suspendu' => 'ROLE_SUSPENDED'
                 ])
                 ->allowMultipleChoices()
-                ->onlyOnForms(),
-
+                ->renderExpanded(false)
+                ->renderAsBadges(),
             BooleanField::new('suspended', 'Suspendu')
                 ->hideOnForm()
                 ->renderAsSwitch(false)
@@ -138,7 +112,7 @@ class UserCrudController extends AbstractCrudController
             
             $this->container->get('doctrine')->getManager()->flush();
             
-            $this->addFlash('success', sprintf('L\'utilisateur %s %s a été suspendu.', $user->getFirstname(), $user->getLastname()));
+            $this->addFlash('success', sprintf('L\'employé %s %s a été suspendu.', $user->getFirstname(), $user->getLastname()));
         }
 
         return $this->redirect($this->generateUrl('admin', [
@@ -158,12 +132,11 @@ class UserCrudController extends AbstractCrudController
         
         $this->container->get('doctrine')->getManager()->flush();
         
-        $this->addFlash('success', sprintf('L\'utilisateur %s %s a été réactivé.', $user->getFirstname(), $user->getLastname()));
+        $this->addFlash('success', sprintf('L\'employé %s %s a été réactivé.', $user->getFirstname(), $user->getLastname()));
 
         return $this->redirect($this->generateUrl('admin', [
             'crudAction' => 'index',
             'crudControllerFqcn' => self::class,
         ]));
     }
-
 }

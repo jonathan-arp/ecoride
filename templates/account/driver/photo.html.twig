@@ -1,6 +1,10 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Photo de profil conducteur{% endblock %}
+{% block title %}Photo de profil conducteur{                            <div class="d-grid">
+                                <button type="submit" class="btn btn-success">
+                                    <i class="fas fa-save me-2"></i>Enregistrer la photo
+                                </button>
+                            </div>ck %}
 
 {% block body %}
 {% for label, messages in app.flashes %}
@@ -15,21 +19,11 @@
 {% endfor %}
 
 <div class="container my-5">
-    <!-- Header Section -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="{{ path('app_home') }}">Accueil</a></li>
-                    <li class="breadcrumb-item"><a href="{{ path('app_account') }}">Mon compte</a></li>
-                    <li class="breadcrumb-item active" aria-current="page">Photo de profil</li>
-                </ol>
-            </nav>
+    <div class="row">
+        <div class="col-md-3">
+            {% include 'account/_menu.html.twig' %}
         </div>
-    </div>
-
-    <div class="row justify-content-center">
-        <div class="col-lg-8">
+        <div class="col-md-9">
             <div class="card shadow border-0">
                 <div class="card-header bg-primary text-white">
                     <h3 class="card-title mb-0">

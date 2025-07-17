@@ -1,4 +1,4 @@
-<aside class="account-sidebar">
+<aside class="account-sidebar mx-3">
 <ul id="menu" class="nav flex-column account-menu">
 
     <li class="nav-item">
@@ -68,19 +68,19 @@
 
     {% if is_granted('ROLE_ADMIN') or is_granted('ROLE_EMPLOYEE') %}
 
-        <li class="nav-item">
-
-            <a class="nav-link" href="{{ path('admin') }}">Administration</a>
-
+        <li class="nav-item mt-3">
+            <a class="nav-link btn btn-outline-primary text-start" href="{{ path('admin') }}">
+                <i class="fas fa-shield-alt me-2"></i>Administration
+            </a>
         </li>
         
 
     {% endif %}
 
-    <li class="nav-item">
-
-        <a class="nav-link" href="{{ path('app_logout') }}">Me déconnecter</a>
-
+    <li class="nav-item mt-4 pt-2 border-top">
+        <a class="nav-link text-danger" href="{{ path('app_logout') }}">
+            <i class="fas fa-sign-out-alt me-2"></i>Me déconnecter
+        </a>
     </li>
 
 </ul>

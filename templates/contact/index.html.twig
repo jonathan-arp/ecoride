@@ -1,0 +1,52 @@
+{# filepath: c:\Users\denis\Desktop\quanti-mars\templates\contact\index.html.twig #}
+{% extends 'base.html.twig' %}
+
+{% block title %}Contact{% endblock %}
+
+
+{% block body %}
+<main class="section-contact">
+    <div class="contact-container w-50 mx-auto my-5">
+        {% for label, messages in app.flashes %}
+            <div class="alert alert-{{ label == 'error' ? 'danger' : (label == 'success' ? 'success' : 'info') }} alert-dismissible fade show" role="alert">
+                {% for message in messages %}
+                    {{ message }}
+                {% endfor %}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {% endfor %}
+        <h1 class="contact-title">Contactez-nous</h1>
+        <div class="form-wrapper">
+            {{ form_start(form, {'attr': {'novalidate': 'novalidate', 'class': 'needs-validation'}}) }}
+                <div class="form-group">
+                    {{ form_label(form.nom, 'Nom', {'label_attr': {'class': 'form-label'}}) }}
+                    {{ form_widget(form.nom, {'attr': {'class': 'form-control'}}) }}
+                    {{ form_help(form.nom) }}
+                    {{ form_errors(form.nom) }}
+                </div>
+                <div class="form-group">
+                    {{ form_label(form.prenom, 'Prénom', {'label_attr': {'class': 'form-label'}}) }}
+                    {{ form_widget(form.prenom, {'attr': {'class': 'form-control'}}) }}
+                    {{ form_help(form.prenom) }}
+                    {{ form_errors(form.prenom) }}
+                </div>
+                <div class="form-group">
+                    {{ form_label(form.email, 'Email', {'label_attr': {'class': 'form-label'}}) }}
+                    {{ form_widget(form.email, {'attr': {'class': 'form-control'}}) }}
+                    {{ form_help(form.email) }}
+                    {{ form_errors(form.email) }}
+                </div>
+                <div class="form-group">
+                    {{ form_label(form.message, 'Message', {'label_attr': {'class': 'form-label'}}) }}
+                    {{ form_widget(form.message, {'attr': {'class': 'form-control', 'rows': '5'}}) }}
+                    {{ form_help(form.message) }}
+                    {{ form_errors(form.message) }}
+                </div>
+                <div class="text-center">
+                    <button type="submit" class="btn bg-green white">Envoyer</button>
+                </div>
+            {{ form_end(form) }}
+        </div>
+    </div>
+</main>
+{% endblock %}

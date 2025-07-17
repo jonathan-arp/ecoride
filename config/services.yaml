@@ -23,12 +23,8 @@ services:
   # add more service definitions when explicit configuration is needed
   # please note that last definitions always *replace* previous ones
 
-  # Configuration du gestionnaire de sessions en base de données
-  pdo_for_sessions:
-    class: PDO
-    factory: ["@doctrine.dbal.default_connection", "getNativeConnection"]
-
-  Symfony\Component\HttpFoundation\Session\Storage\Handler\PdoSessionHandler:
-    arguments:
-      - "@pdo_for_sessions"
-      - { table_name: "sessions" }
+  # Listener de debug pour les sessions
+  App\EventListener\SessionDebugListener:
+    tags:
+      - { name: kernel.event_listener, event: kernel.request, priority: 1000 }
+      - { name: kernel.event_listener, event: kernel.response, priority: -1000 }

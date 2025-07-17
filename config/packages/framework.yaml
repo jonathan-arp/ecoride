@@ -5,8 +5,7 @@ framework:
 
   # Note that the session will be started ONLY if you read or write from it.
   session:
-    # Stockage des sessions en base de données pour une meilleure stabilité
-    handler_id: Symfony\Component\HttpFoundation\Session\Storage\Handler\PdoSessionHandler
+    # Using file-based session storage for stability (default behavior)
     # Increase session lifetime to 8 hours
     cookie_lifetime: 28800 # Durée du cookie de session (en secondes, ici 8h)
     # Keep session active for 8 hours of inactivity

@@ -17,11 +17,15 @@ class ReservationRepository extends ServiceEntityRepository
     }
 
     /**
-     * Find reservations by passenger
+     * Find reservations by passenger with eager loading of relations
      */
     public function findByPassenger($passenger): array
     {
         return $this->createQueryBuilder('r')
+            ->leftJoin('r.carshare', 'c')
+            ->leftJoin('c.driver', 'd')
+            ->leftJoin('c.car', 'car')
+            ->addSelect('c', 'd', 'car')
             ->andWhere('r.passenger = :passenger')
             ->setParameter('passenger', $passenger)
             ->orderBy('r.createdAt', 'DESC')

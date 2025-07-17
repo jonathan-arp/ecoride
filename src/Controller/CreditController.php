@@ -36,7 +36,7 @@ class CreditController extends AbstractController
         $balance = $freshUser->getCreditBalance();
 
         // DÃ©tacher l'entitÃ© pour Ã©viter les conflits lors de navigation rapide
-        $this->entityManager->detach($freshUser);
+        // NOTE: Ne jamais détacher l'entité User car cela peut affecter la session de sécurité`r`n        // $this->entityManager->detach($freshUser);
 
         return $this->render('credit/index.html.twig', [
             'credits' => $credits,

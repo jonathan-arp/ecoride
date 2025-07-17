@@ -117,31 +117,17 @@ class ReservationController extends AbstractController
     #[Route('/reservations', name: 'app_reservations_index')]
     public function myReservations(ReservationRepository $reservationRepository): Response
     {
-        $user = $this->getUser();
+        $sessionUser = $this->getUser();
 
-        if (!$user instanceof \App\Entity\User) {
+        if (!$sessionUser instanceof \App\Entity\User) {
             return $this->redirectToRoute('app_login');
         }
 
-        // Recharge l'utilisateur depuis la base pour éviter les problèmes de session
-        $userId = $user->getId();
-        $freshUser = $this->entityManager->getRepository(\App\Entity\User::class)->find($userId);
+        // Détacher immédiatement l'utilisateur de session pour éviter toute corruption
+        $this->entityManager->detach($sessionUser);
 
-        $reservations = $reservationRepository->findByPassenger($freshUser);
-
-        // TODO: Remplacer par un cron job pour éviter les problèmes de navigation rapide
-        // Check and mark expired carshares for all reservations
-        // $carshares = [];
-        // foreach ($reservations as $reservation) {
-        //     $carshare = $reservation->getCarshare();
-        //     if (!in_array($carshare, $carshares, true)) {
-        //         $carshares[] = $carshare;
-        //     }
-        // }
-        // $this->checkAndMarkExpiredCarshares($carshares);
-
-        // Détacher l'entité pour éviter les conflits lors de navigation rapide
-        $this->entityManager->detach($freshUser);
+        // Récupérer les réservations avec eager loading pour éviter les requêtes supplémentaires
+        $reservations = $reservationRepository->findByPassenger($sessionUser);
 
         return $this->render('reservation/index.html.twig', [
             'reservations' => $reservations,
@@ -194,19 +180,5 @@ class ReservationController extends AbstractController
         ));
 
         return $this->redirectToRoute('app_reservations_index');
-    }
-    
-    private function checkAndMarkExpiredCarshares(array $carshares): void
-    {
-        foreach ($carshares as $carshare) {
-            if ($carshare->isExpired()) {
-                $carshare->markAsExpired();
-                $this->entityManager->persist($carshare);
-            }
-        }
-        
-        if (!empty($carshares)) {
-            $this->entityManager->flush();
-        }
     }
 }

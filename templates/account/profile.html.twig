@@ -4,8 +4,11 @@
 
 {% block body %}
 <div class="container my-5">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
+    <div class="row">
+        <div class="col-md-3">
+            {% include 'account/_menu.html.twig' %}
+        </div>
+        <div class="col-md-9">
             <div class="card shadow">
                 <div class="card-header bg-success text-white">
                     <h2 class="mb-0">
@@ -93,11 +96,7 @@
                         {% endif %}
                     </div>
 
-                    <div class="d-flex justify-content-between">
-                        <a href="{{ path('app_account') }}" class="btn btn-secondary">
-                            <i class="fas fa-arrow-left me-1"></i>
-                            Retour
-                        </a>
+                    <div class="d-flex justify-content-end">
                         <button type="submit" class="btn btn-success">
                             <i class="fas fa-save me-1"></i>
                             Enregistrer les modifications

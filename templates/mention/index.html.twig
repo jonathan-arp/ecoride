@@ -1,0 +1,81 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mentions Légales{% endblock %}
+
+{% block body %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <h1 class="text-center mb-4">Mentions Légales</h1>
+            
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    
+                    <h2 class="h4 text-primary mb-3">1. Informations légales</h2>
+                    <p><strong>Nom du site :</strong> EcoRide</p>
+                    <p><strong>Éditeur :</strong> EcoRide</p>
+                    <p><strong>Adresse :</strong> 3 chemin de la verdure 13000 Marseille</p>
+                    <p><strong>Téléphone :</strong> 0 805 542 242</p>
+                    <p><strong>Email :</strong> contact@ecoride.fr</p>
+                    <p><strong>Directeur de la publication :</strong> Jonathan ARP</p>
+                    
+                    <hr class="my-4">
+                    
+                    <h2 class="h4 text-primary mb-3">2. Hébergement</h2>
+                    <p><strong>Hébergeur :</strong> IONOS</p>
+                    <p><strong>Adresse :</strong> 7 Place de la Gare, 57200 Sarreguemines, France</p>
+                    <p><strong>Téléphone :</strong> 0 805 542 242</p>
+                    
+                    <hr class="my-4">
+                    
+                    <h2 class="h4 text-primary mb-3">3. Propriété intellectuelle</h2>
+                    <p>Le contenu du site EcoRide (textes, images, graphiques, logo, icônes, sons, logiciels) est la propriété exclusive de la société éditrice, à l'exception des marques, logos ou contenus appartenant à d'autres sociétés partenaires ou auteurs.</p>
+                    <p>Toute reproduction, représentation, modification, publication, adaptation de tout ou partie des éléments du site, quel que soit le moyen ou le procédé utilisé, est interdite, sauf autorisation écrite préalable.</p>
+                    
+                    <hr class="my-4">
+                    
+                    <h2 class="h4 text-primary mb-3">4. Responsabilité</h2>
+                    <p>Les informations contenues sur ce site sont aussi précises que possible et le site remis à jour à différentes périodes de l'année, mais peut toutefois contenir des inexactitudes ou des omissions.</p>
+                    <p>Si vous constatez une lacune, erreur ou ce qui parait être un dysfonctionnement, merci de bien vouloir le signaler par email, à l'adresse contact@ecoride.fr, en décrivant le problème de la façon la plus précise possible.</p>
+                    
+                    <hr class="my-4">
+                    
+                    <h2 class="h4 text-primary mb-3">5. Protection des données personnelles</h2>
+                    <p>En conformité avec le Règlement Général sur la Protection des Données (RGPD), nous vous informons que :</p>
+                    <ul>
+                        <li>Les données personnelles collectées sont utilisées uniquement dans le cadre du service de covoiturage</li>
+                        <li>Vous disposez d'un droit d'accès, de rectification et de suppression de vos données</li>
+                        <li>Vos données ne sont pas transmises à des tiers sans votre consentement</li>
+                        <li>Les données sont conservées pendant la durée nécessaire au service et conformément aux obligations légales</li>
+                    </ul>
+                    <p>Pour exercer vos droits, contactez-nous à : contact@ecoride.fr</p>
+                    
+                    <hr class="my-4">
+                    
+                    <h2 class="h4 text-primary mb-3">6. Cookies</h2>
+                    <p>Ce site utilise des cookies techniques nécessaires au bon fonctionnement du service (session utilisateur, préférences). Aucun cookie de tracking ou publicitaire n'est utilisé sans votre consentement explicite.</p>
+                    
+                    <hr class="my-4">
+                    
+                    <h2 class="h4 text-primary mb-3">7. Droit applicable</h2>
+                    <p>Tant le présent site que les modalités et conditions de son utilisation sont régis par le droit français, quel que soit le lieu d'utilisation. En cas de contestation éventuelle, et après l'échec de toute tentative de recherche d'une solution amiable, les tribunaux français seront seuls compétents pour connaître de ce litige.</p>
+                    
+                    <hr class="my-4">
+                    
+                    <p class="text-muted small">
+                        <strong>Dernière mise à jour :</strong> {{ "now"|date("d/m/Y") }}
+                    </p>
+                    
+                </div>
+            </div>
+            
+            <div class="text-center mt-4">
+                <a href="{{ path('app_home') }}" class="btn btn-outline-primary">
+                    <i class="fas fa-arrow-left me-2"></i>Retour à l'accueil
+                </a>
+            </div>
+            
+        </div>
+    </div>
+</div>
+{% endblock %}
