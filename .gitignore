@@ -1,9 +1,10 @@
 
 ###> symfony/framework-bundle ###
 /.env.local
-/.env
 /.env.local.php
 /.env.*.local
+# Exclure les fichiers de production avec des secrets
+/.env.prod.local
 /config/secrets/prod/prod.decrypt.private.php
 /public/bundles/
 /var/
