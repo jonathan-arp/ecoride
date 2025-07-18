@@ -12,14 +12,18 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Mime\Email;
 
 class CarshareController extends AbstractController
 {
     private EntityManagerInterface $entityManager;
+    private MailerInterface $mailer;
 
-    public function __construct(EntityManagerInterface $entityManager)
+    public function __construct(EntityManagerInterface $entityManager, MailerInterface $mailer)
     {
         $this->entityManager = $entityManager;
+        $this->mailer = $mailer;
     }
 
     #[Route('/carshares', name: 'app_carshare')]
@@ -325,6 +329,9 @@ class CarshareController extends AbstractController
             // Gérer les réservations existantes
             $reservationsCount = $carshare->getReservations()->count();
             if ($reservationsCount > 0) {
+                // Envoyer un email d'annulation à tous les participants
+                $this->sendCancellationEmail($carshare);
+                
                 // Annuler toutes les réservations et leurs transactions
                 $platformTransactionRepository = $this->entityManager->getRepository(\App\Entity\PlatformTransaction::class);
                 
@@ -380,6 +387,100 @@ class CarshareController extends AbstractController
         }
         if ($modified) {
             $this->entityManager->flush();
+        }
+    }
+
+    private function sendCancellationEmail(Carshare $carshare): void
+    {
+        $driver = $carshare->getDriver();
+        $reservations = $carshare->getReservations();
+        
+        // Collecter tous les emails des participants
+        $participantEmails = [];
+        foreach ($reservations as $reservation) {
+            $passenger = $reservation->getPassenger();
+            if ($passenger && $passenger->getEmail()) {
+                $participantEmails[] = $passenger->getEmail();
+            }
+        }
+        
+        // Ajouter l'email du conducteur
+        if ($driver->getEmail()) {
+            $participantEmails[] = $driver->getEmail();
+        }
+        
+        // Supprimer les doublons
+        $participantEmails = array_unique($participantEmails);
+        
+        foreach ($participantEmails as $email) {
+            $this->sendCancellationEmailToParticipant($email, $carshare, $driver);
+        }
+    }
+    
+    private function sendCancellationEmailToParticipant(string $email, Carshare $carshare, \App\Entity\User $driver): void
+    {
+        // Vérifier si l'envoi d'emails est activé
+        if (!$this->getParameter('app.enable_emails')) {
+            error_log('Envoi d\'email désactivé en développement - Email d\'annulation non envoyé');
+            return;
+        }
+
+        $startDate = $carshare->getStart()->format('d/m/Y à H:i');
+        $route = $carshare->getFormattedRoute();
+        $price = number_format($carshare->getPrice(), 2, ',', ' ');
+        
+        $subject = sprintf('Annulation du covoiturage %s - %s', $route, $startDate);
+        
+        $htmlContent = sprintf('
+            <h2>Covoiturage annulé</h2>
+            <p>Bonjour,</p>
+            <p>Le covoiturage suivant a été annulé par le conducteur %s %s :</p>
+            <ul>
+                <li><strong>Trajet :</strong> %s</li>
+                <li><strong>Date :</strong> %s</li>
+                <li><strong>Prix :</strong> %s €</li>
+            </ul>
+            <p><strong>Important :</strong> Si vous aviez réservé ce covoiturage, votre crédit sera automatiquement remboursé.</p>
+            <p>Vous pouvez chercher un autre covoiturage sur notre plateforme.</p>
+            <p>Cordialement,<br>L\'équipe EcoRide</p>
+        ', 
+            $driver->getFirstname(), 
+            $driver->getLastname(),
+            $route,
+            $startDate,
+            $price
+        );
+        
+        $textContent = sprintf(
+            "Covoiturage annulé\n\n" .
+            "Bonjour,\n\n" .
+            "Le covoiturage suivant a été annulé par le conducteur %s %s :\n\n" .
+            "Trajet : %s\n" .
+            "Date : %s\n" .
+            "Prix : %s €\n\n" .
+            "Important : Si vous aviez réservé ce covoiturage, votre crédit sera automatiquement remboursé.\n\n" .
+            "Vous pouvez chercher un autre covoiturage sur notre plateforme.\n\n" .
+            "Cordialement,\n" .
+            "L'équipe EcoRide",
+            $driver->getFirstname(),
+            $driver->getLastname(),
+            $route,
+            $startDate,
+            $price
+        );
+        
+        $emailMessage = (new Email())
+            ->from('noreply@ecoride.horizonduweb.fr')
+            ->to($email)
+            ->subject($subject)
+            ->text($textContent)
+            ->html($htmlContent);
+        
+        try {
+            $this->mailer->send($emailMessage);
+        } catch (\Exception $e) {
+            // Log l'erreur mais ne pas empêcher l'annulation
+            error_log('Erreur envoi email annulation: ' . $e->getMessage());
         }
     }
 

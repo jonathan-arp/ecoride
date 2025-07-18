@@ -13,11 +13,14 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Mime\Email;
 
 class TripController extends AbstractController
 {
     public function __construct(
-        private EntityManagerInterface $entityManager
+        private EntityManagerInterface $entityManager,
+        private MailerInterface $mailer
     ) {}
 
     #[Route('/carshare/{id}/start-trip', name: 'app_trip_start', methods: ['POST'])]
@@ -74,6 +77,9 @@ class TripController extends AbstractController
         $carshare->arriveTrip();
         $this->entityManager->persist($carshare);
         $this->entityManager->flush();
+
+        // Envoyer un email aux participants pour leur demander de valider le trajet
+        $this->sendTripValidationEmail($carshare);
 
         $this->addFlash('success', 'Arrivée confirmée ! En attente de validation par les passagers.');
 
@@ -264,5 +270,133 @@ class TripController extends AbstractController
             'averageRating' => $averageRating,
             'totalReviews' => $totalReviews,
         ]);
+    }
+
+    private function sendTripValidationEmail(Carshare $carshare): void
+    {
+        $driver = $carshare->getDriver();
+        $reservations = $carshare->getReservations();
+        
+        // Envoyer un email à chaque passager
+        foreach ($reservations as $reservation) {
+            $passenger = $reservation->getPassenger();
+            if ($passenger && $passenger->getEmail()) {
+                $this->sendValidationEmailToPassenger($passenger, $carshare, $driver, $reservation);
+            }
+        }
+    }
+    
+    private function sendValidationEmailToPassenger(
+        \App\Entity\User $passenger, 
+        Carshare $carshare, 
+        \App\Entity\User $driver, 
+        Reservation $reservation
+    ): void {
+        // Vérifier si l'envoi d'emails est activé
+        if (!$this->getParameter('app.enable_emails')) {
+            error_log('Envoi d\'email désactivé en développement - Email de validation non envoyé');
+            return;
+        }
+
+        $startDate = $carshare->getStart()->format('d/m/Y à H:i');
+        $route = $carshare->getFormattedRoute();
+        $price = number_format($carshare->getPrice(), 2, ',', ' ');
+        
+        $subject = sprintf('Validation requise - Trajet %s terminé', $route);
+        
+        $validationUrl = $this->generateUrl('app_trip_review', [
+            'id' => $reservation->getId()
+        ], \Symfony\Component\Routing\Generator\UrlGeneratorInterface::ABSOLUTE_URL);
+        
+        $htmlContent = sprintf('
+            <h2>Trajet terminé - Validation requise</h2>
+            <p>Bonjour %s,</p>
+            <p>Votre trajet avec %s %s est arrivé à destination :</p>
+            <ul>
+                <li><strong>Trajet :</strong> %s</li>
+                <li><strong>Date :</strong> %s</li>
+                <li><strong>Prix :</strong> %s €</li>
+            </ul>
+            
+            <h3>📝 Action requise</h3>
+            <p><strong>Veuillez vous rendre sur votre espace personnel pour valider que tout s\'est bien passé.</strong></p>
+            <p>👉 <a href="%s" style="background-color: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Valider mon trajet</a></p>
+            
+            <h3>💰 Mise à jour des crédits</h3>
+            <p>⚠️ <strong>Important :</strong> Les crédits du conducteur ne seront mis à jour qu\'après validation de tous les passagers.</p>
+            
+            <h3>⭐ Évaluation et avis</h3>
+            <p>Vous pourrez également :</p>
+            <ul>
+                <li>Soumettre un avis sur le conducteur</li>
+                <li>Attribuer une note (soumise à validation par un employé)</li>
+            </ul>
+            
+            <h3>⚠️ Problème pendant le trajet ?</h3>
+            <p>Si le trajet s\'est mal passé, vous pourrez :</p>
+            <ul>
+                <li>Indiquer que le trajet ne s\'est pas bien déroulé</li>
+                <li>Ajouter un commentaire explicatif</li>
+                <li>Un employé contactera le conducteur pour résoudre la situation</li>
+                <li>Les crédits du conducteur seront suspendus en attendant la résolution</li>
+            </ul>
+            
+            <p>Cordialement,<br>L\'équipe EcoRide</p>
+        ', 
+            $passenger->getFirstname(),
+            $driver->getFirstname(), 
+            $driver->getLastname(),
+            $route,
+            $startDate,
+            $price,
+            $validationUrl
+        );
+        
+        $textContent = sprintf(
+            "Trajet terminé - Validation requise\n\n" .
+            "Bonjour %s,\n\n" .
+            "Votre trajet avec %s %s est arrivé à destination :\n\n" .
+            "Trajet : %s\n" .
+            "Date : %s\n" .
+            "Prix : %s €\n\n" .
+            "ACTION REQUISE\n" .
+            "Veuillez vous rendre sur votre espace personnel pour valider que tout s'est bien passé.\n" .
+            "Lien de validation : %s\n\n" .
+            "MISE À JOUR DES CRÉDITS\n" .
+            "Important : Les crédits du conducteur ne seront mis à jour qu'après validation de tous les passagers.\n\n" .
+            "ÉVALUATION ET AVIS\n" .
+            "Vous pourrez également :\n" .
+            "- Soumettre un avis sur le conducteur\n" .
+            "- Attribuer une note (soumise à validation par un employé)\n\n" .
+            "PROBLÈME PENDANT LE TRAJET ?\n" .
+            "Si le trajet s'est mal passé, vous pourrez :\n" .
+            "- Indiquer que le trajet ne s'est pas bien déroulé\n" .
+            "- Ajouter un commentaire explicatif\n" .
+            "- Un employé contactera le conducteur pour résoudre la situation\n" .
+            "- Les crédits du conducteur seront suspendus en attendant la résolution\n\n" .
+            "Cordialement,\n" .
+            "L'équipe EcoRide",
+            $passenger->getFirstname(),
+            $driver->getFirstname(),
+            $driver->getLastname(),
+            $route,
+            $startDate,
+            $price,
+            $validationUrl
+        );
+        
+        $emailMessage = (new Email())
+            ->from('noreply@ecoride.horizonduweb.fr')
+            ->to($passenger->getEmail())
+            ->subject($subject)
+            ->text($textContent)
+            ->html($htmlContent);
+        
+        try {
+            $this->mailer->send($emailMessage);
+        } catch (\Exception $e) {
+            // Log l'erreur mais ne pas empêcher la validation
+            error_log('Erreur envoi email validation trajet: ' . $e->getMessage());
+        }
     }
 }
